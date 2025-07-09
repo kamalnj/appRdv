@@ -65,18 +65,17 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                             <InputError className="mt-2" message={errors.name} />
                         </div>
 
-                        <div className="grid gap-2">
+                        <div className="grid  gap-2">
                             <Label htmlFor="email">Email address</Label>
 
                             <Input
                                 id="email"
                                 type="email"
-                                className="mt-1 block w-full"
-                                value={data.email}
-                                onChange={(e) => setData('email', e.target.value)}
-                                required
+                                className="mt-1 cursor-not-allowed block w-full"
+                                value={data.email}                                
                                 autoComplete="username"
                                 placeholder="Email address"
+                                readOnly
                             />
 
                             <InputError className="mt-2" message={errors.email} />
