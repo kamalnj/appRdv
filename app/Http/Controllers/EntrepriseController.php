@@ -14,4 +14,10 @@ class EntrepriseController extends Controller
                         'entreprises' => Entreprise::all()
         ]);
     }
+        public function indexSimple(Entreprise $entreprise)
+    {
+        return Inertia::render('Assistante/IndexSimple',[
+                        'entreprise' => $entreprise 
+        ]);
+    }
 }

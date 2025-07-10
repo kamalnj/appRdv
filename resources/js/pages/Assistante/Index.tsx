@@ -92,37 +92,56 @@ export default function Index({ auth, entreprises }: Props) {
                     </select>
                 </div>
 
-                {/* Liste des entreprises */}
+                
                 {filteredEntreprises.length === 0 ? (
-                    <div className="flex h-40 flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50">
-                        <span className="text-gray-400">Aucune entreprise ne correspond à votre recherche.</span>
-                    </div>
-                ) : (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {filteredEntreprises.map((entreprise) => (
+    <div className="flex h-40 flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50">
+        <span className="text-gray-400">Aucune entreprise ne correspond à votre recherche.</span>
+    </div>
+) : (
+    <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
+            <thead className="bg-gray-50">
+                <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Entreprise
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Secteur
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+                {filteredEntreprises.map((entreprise) => (
+                    <tr key={entreprise.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                                <Building2 className="h-5 w-5 text-indigo-500" />
+                                <span className="text-lg font-bold text-gray-800">{entreprise.nom}</span>
+                            </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <span>{entreprise.secteur}</span>
+                            </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
                             <Link
-                                key={entreprise.id}
                                 href={`/entreprises/${entreprise.id}`}
-                                className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-md transition-shadow hover:shadow-lg"
+                                className="inline-flex items-center px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-lg hover:bg-indigo-600 transition-colors"
                             >
-                                <div className="mb-2 flex items-center gap-2">
-                                    <Building2 className="h-5 w-5 text-indigo-500" />
-                                    <h3 className="text-lg font-bold text-gray-800">{entreprise.nom}</h3>
-                                </div>
-
-                                <div className="mb-1 flex items-center gap-2 text-sm text-gray-600">
-                                    <Briefcase className="h-4 w-4" />
-                                    <span>{entreprise.secteur}</span>
-                                </div>
-
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <MapPin className="h-4 w-4" />
-                                    <span>{entreprise.localisation}</span>
-                                </div>
+                                Voir
                             </Link>
-                        ))}
-                    </div>
-                )}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+)}
+
             </div>
         </AppLayout>
     );
