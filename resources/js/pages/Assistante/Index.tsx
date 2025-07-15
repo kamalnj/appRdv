@@ -94,13 +94,13 @@ export default function Index({ auth, entreprises }: Props) {
 
                 
                 {filteredEntreprises.length === 0 ? (
-    <div className="flex h-40 flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50">
-        <span className="text-gray-400">Aucune entreprise ne correspond à votre recherche.</span>
-    </div>
-) : (
-    <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
-            <thead className="bg-gray-50">
+                <div className="flex h-40 flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50">
+                      <span className="text-gray-400">Aucune entreprise ne correspond à votre recherche.</span>
+                       </div>
+                        ) : (
+                                  <div className="overflow-x-auto">
+                          <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
+                    <thead className="bg-gray-50">
                 <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Entreprise
@@ -112,8 +112,8 @@ export default function Index({ auth, entreprises }: Props) {
                         Actions
                     </th>
                 </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEntreprises.map((entreprise) => (
                     <tr key={entreprise.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -137,9 +137,9 @@ export default function Index({ auth, entreprises }: Props) {
                         </td>
                     </tr>
                 ))}
-            </tbody>
-        </table>
-    </div>
+                 </tbody>
+             </table>
+            </div>
 )}
 
             </div>
