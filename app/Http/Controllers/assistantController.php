@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\UsersImport;
 use App\Models\Action;
 use App\Models\Entreprise;
 use App\Models\Rdv;
@@ -9,6 +10,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
+
 
 class assistantController extends Controller
 {
@@ -22,6 +26,17 @@ class assistantController extends Controller
         return Inertia::render('Assistante/Index', [
             'entreprises' => Entreprise::all()
         ]);
+    }
+        public function import(Request $request) 
+    {
+        // Validate incoming request data
+        $request->validate([
+            'file' => 'required|max:2048|mimes:xlsx,csv,xls',
+        ]);
+  
+        Excel::import(new UsersImport, $request->file('file'));
+                 
+        return back()->with('success', 'Users imported successfully.');
     }
 
     public function indexSimple(Entreprise $entreprise)
@@ -39,7 +54,7 @@ class assistantController extends Controller
 public function indexActions(Entreprise $entreprise)
 {
     return Inertia::render('Assistante/ListeAction', [
-        'entreprise' => $entreprise->only(['id', 'nom']),
+        'entreprise' => $entreprise->only(['id', 'denomination']),
         'actions' => $entreprise->actions()->with('rdv.commercant')->get(),
         'rdvs' => $entreprise->rdvs()->get(),
     ]);
@@ -47,11 +62,11 @@ public function indexActions(Entreprise $entreprise)
 public function edit($entrepriseId, Action $action)
 {
     $entreprise = Entreprise::findOrFail($entrepriseId);
-    $rdv = $action->rdv; // nullable possible
+    $rdv = $action->rdv; 
     $commercants = User::where('role', 'commerçant')->get(['id', 'name']);
 
     return Inertia::render('Assistante/EditAction', [
-        'entreprise' => $entreprise->only(['id', 'nom']),
+        'entreprise' => $entreprise->only(['id', 'denomination']),
         'action' => $action->only(['id', 'feedback', 'next_step', 'besoin_client', 'commentaire']),
         'rdv' => $rdv ? $rdv->only(['date_rdv', 'representant', 'email', 'localisation', 'commercant_id']) : [],
         'commercants' => $commercants,
@@ -75,7 +90,7 @@ public function create($entrepriseId)
         });
 
     return Inertia::render('Assistante/Action', [
-        'entreprise' => $entreprise->only(['id', 'nom']),
+        'entreprise' => $entreprise->only(['id', 'denomination']),
         'assistants' => User::where('role', 'assistant')->select('id', 'name')->get(),
         'commercants' => User::where('role', 'commerçant')->select('id', 'name')->get(),
         'rdvsPris' => $rdvsPris, 
@@ -89,7 +104,6 @@ public function store(Request $request, $entrepriseId)
 {
     $entreprise = Entreprise::findOrFail($entrepriseId);
 
-    // Validate all fields for both RDV and Action
     $validated = $request->validate([
         'commercant_id' => 'required|exists:users,id',
         'date_rdv' => 'required|date|after:now',
@@ -113,14 +127,21 @@ public function store(Request $request, $entrepriseId)
         return response()->json(['message' => 'Le commerçant sélectionné n\'est pas valide.'], 422);
     }
 
-          $existe = rdv::where('commercant_id', $request->commercant_id)
-                ->where('date_rdv', $request->date_rdv)
-                ->exists();
+    $dateDebut = Carbon::parse($request->date_rdv);
+    $dateFin = $dateDebut->copy()->addHours(4);
+
+    $existe = rdv::where('commercant_id', $request->commercant_id)
+        ->where(function ($query) use ($dateDebut, $dateFin) {
+            $query->whereRaw('date_rdv < ?', [$dateFin])
+                  ->whereRaw('DATE_ADD(date_rdv, INTERVAL 4 HOUR) > ?', [$dateDebut]);
+        })
+        ->exists();
 
     if ($existe) {
-        return back()->withErrors(['date_rdv' => 'Ce créneau est déjà réservé pour ce commerçant. Veuillez choisir une autre date.']);
+        return back()->withErrors([
+            'date_rdv' => 'Ce créneau chevauche un autre RDV (durée 4h). Veuillez choisir une autre date.',
+        ]);
     }
-
     DB::beginTransaction();
     
     try {
@@ -141,7 +162,7 @@ public function store(Request $request, $entrepriseId)
             'email' => $validated['email'],
             'localisation' => $validated['localisation'],
             'entreprise_id' => $validated['entreprise_id'],
-            'action_id' => $action->id, // Use the ID from the newly created action
+            'action_id' => $action->id, 
         ]);
 
         DB::commit();
@@ -180,14 +201,21 @@ public function store(Request $request, $entrepriseId)
         return response()->json(['message' => 'Le commerçant sélectionné n\'est pas valide.'], 422);
     }
 
-              $existe = rdv::where('commercant_id', $request->commercant_id)
-                ->where('date_rdv', $request->date_rdv)
-                ->exists();
+ $dateDebut = Carbon::parse($request->date_rdv);
+    $dateFin = $dateDebut->copy()->addHours(4);
+
+    $existe = rdv::where('commercant_id', $request->commercant_id)
+        ->where(function ($query) use ($dateDebut, $dateFin) {
+            $query->whereRaw('date_rdv < ?', [$dateFin])
+                  ->whereRaw('DATE_ADD(date_rdv, INTERVAL 4 HOUR) > ?', [$dateDebut]);
+        })
+        ->exists();
 
     if ($existe) {
-        return back()->withErrors(['date_rdv' => 'Ce créneau est déjà réservé pour ce commerçant. Veuillez choisir une autre date.']);
+        return back()->withErrors([
+            'date_rdv' => 'Ce créneau chevauche un autre RDV (durée 4h). Veuillez choisir une autre date.',
+        ]);
     }
-
 
 
     $action->update([

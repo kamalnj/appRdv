@@ -24,16 +24,16 @@ interface CombinedData {
 }
 
 interface Props {
-    entreprise: { id: number; nom: string };
+    entreprise: { id: number; denomination: string };
     assistants: Array<{ id: number; name: string }>;
     commercants: Array<{ id: number; name: string }>;
-    rdvsPris: Record<string, string[]>; // Add this prop
+    rdvsPris: Record<string, string[]>; 
 }
 
 export default function Action({ entreprise, assistants, commercants, rdvsPris }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Entreprises', href: '/entreprises' },
-        { title: entreprise.nom, href: `/entreprises/${entreprise.id}` },
+        { title: entreprise.denomination, href: `/entreprises/${entreprise.id}` },
         { title: 'Nouveau Action', href: `/entreprises/${entreprise.id}/action` },
     ];
 
@@ -78,13 +78,13 @@ export default function Action({ entreprise, assistants, commercants, rdvsPris }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={entreprise.nom} />
+            <Head title={entreprise.denomination} />
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8">
                 <div className="mx-auto max-w-5xl px-4">
                     <PageHeader
                         title="Créer RDV et Action"
                         subtitle="Entreprise:"
-                        entrepriseName={entreprise.nom}
+                        entrepriseName={entreprise.denomination}
                     />
 
                     <form onSubmit={handleSubmit} className="space-y-8">

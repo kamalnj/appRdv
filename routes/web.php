@@ -21,6 +21,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 Route::middleware(['auth', 'verified', 'role:assistant'])->group(function () {
     Route::get('/dashboardA', [assistantController::class, 'assistantDashboard'])->name('assistant.dashboard');
     Route::get('/entreprises', [assistantController::class, 'index'])->name('entreprises.index');
+    Route::post('/users-import', [assistantController::class, 'import'])->name('users.import');
     Route::get('/entreprises/{entreprise}', [assistantController::class, 'indexSimple'])->name('entreprises.indexSimple');
     Route::get('/entreprises/{entreprise}/action', [assistantController::class, 'create'])
         ->name('entreprises.actions.create');

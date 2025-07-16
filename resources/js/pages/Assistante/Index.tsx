@@ -1,8 +1,9 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { Briefcase, Building2, MapPin, Search } from 'lucide-react';
+import { Briefcase, Building2, MapPin, Search, Upload, Filter, Download, Plus, Eye, FileText, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -13,9 +14,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface Entreprise {
     id: number;
-    nom: string;
-    secteur: string;
-    localisation: string;
+    denomination: string;
+    tribunal: string;
+    rc: string;
 }
 
 interface Props {
@@ -30,118 +31,249 @@ interface Props {
 
 export default function Index({ auth, entreprises }: Props) {
     const [search, setSearch] = useState('');
-    const [secteurFilter, setSecteurFilter] = useState('');
-    const [localisationFilter, setLocalisationFilter] = useState('');
+    const [tribunalFilter, settribunalFilter] = useState('');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [showFilters, setShowFilters] = useState(false);
 
-    const secteurs = Array.from(new Set(entreprises.map((e) => e.secteur))).sort();
-    const localisations = Array.from(new Set(entreprises.map((e) => e.localisation))).sort();
+    const tribunals = Array.from(new Set(entreprises.map((e) => e.tribunal))).sort();
 
     const filteredEntreprises = entreprises.filter((entreprise) => {
         const matchSearch =
-            entreprise.nom.toLowerCase().includes(search.toLowerCase()) ||
-            entreprise.secteur.toLowerCase().includes(search.toLowerCase()) ||
-            entreprise.localisation.toLowerCase().includes(search.toLowerCase());
+            entreprise.denomination.toLowerCase().includes(search.toLowerCase()) ||
+            entreprise.tribunal.toLowerCase().includes(search.toLowerCase()) ||
+            entreprise.rc.toLowerCase().includes(search.toLowerCase());
 
-        const matchSecteur = secteurFilter ? entreprise.secteur === secteurFilter : true;
-        const matchLocalisation = localisationFilter ? entreprise.localisation === localisationFilter : true;
+        const matchtribunal = tribunalFilter ? entreprise.tribunal === tribunalFilter : true;
 
-        return matchSearch && matchSecteur && matchLocalisation;
+        return matchSearch && matchtribunal;
     });
+
+    const { post, reset, setData, processing, errors } = useForm({
+        file: null as File | null,
+    });
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        setSelectedFile(file || null);
+        setData('file', file || null);
+    };
+
+    const handleImport = () => {
+        if (!selectedFile) {
+            alert("Veuillez sélectionner un fichier.");
+            return;
+        }
+
+        post(`/users-import`, {
+            forceFormData: true,
+            onSuccess: () => {
+                reset();
+                setSelectedFile(null);
+                alert('Importation réussie !');
+            },
+            onError: (errors) => {
+                console.log('Erreur de validation :', errors);
+            },
+        });
+    };
+
+    const clearFilters = () => {
+        setSearch('');
+        settribunalFilter('');
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Entreprises" />
 
-            <div className="space-y-6 p-6">
-                <div className="flex flex-col gap-3 md:flex-row">
-                    <div className="relative">
-                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Rechercher..."
-                            className="rounded-xl border border-gray-300 py-2 pr-4 pl-10 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
+            <div className="min-h-screen bg-gray-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div className="space-y-6">
+          
+
+                        {/* Import Section */}
+                        <div className="bg-white rounded-xl shadow-sm border p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                    <Upload className="h-5 w-5 text-indigo-500" />
+                                    Importer des données
+                                </h2>
+                                <span className="text-sm text-gray-500">Formats acceptés: CSV, XLSX, XLS</span>
+                            </div>
+                            
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-indigo-300 transition-colors">
+                                <div className="flex flex-col sm:flex-row items-center gap-4">
+                                    <div className="flex-1">
+                                        <input
+                                            type="file"
+                                            accept=".csv,.xlsx,.xls"
+                                            onChange={handleFileChange}
+                                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 transition-colors"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleImport}
+                                        disabled={!selectedFile || processing}
+                                        className="inline-flex items-center px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        {processing ? 'Importation...' : 'Importer'}
+                                    </button>
+                                </div>
+                                
+                                {selectedFile && (
+                                    <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
+                                        <FileText className="h-4 w-4" />
+                                        <span>Fichier sélectionné: {selectedFile.name}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                                      {/* Search and Filters */}
+                        <div className="bg-white rounded-xl shadow-sm border p-6">
+                            <div className="flex flex-col lg:flex-row gap-4">
+                                {/* Search Bar */}
+                                <div className="flex-1 relative">
+                                    <Search className="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Rechercher par nom, tribunal ou RC..."
+                                        className="w-full rounded-lg border border-gray-300 py-3 pr-4 pl-11 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+
+                                {/* Filters */}
+                                <div className={`flex flex-col sm:flex-row gap-4 ${showFilters ? 'block' : 'hidden lg:flex'}`}>
+                                    <select
+                                        value={tribunalFilter}
+                                        onChange={(e) => settribunalFilter(e.target.value)}
+                                        className="rounded-lg border border-gray-300 px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all min-w-48"
+                                    >
+                                        <option value="">Tous les tribunaux</option>
+                                        {tribunals.map((tribunal) => (
+                                            <option key={tribunal} value={tribunal}>
+                                                {tribunal}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    {(search || tribunalFilter) && (
+                                        <button
+                                            onClick={clearFilters}
+                                            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                                        >
+                                            Effacer les filtres
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Results Section */}
+                        <div className="bg-white rounded-xl shadow-sm border">
+                            <div className="px-6 py-4 border-b border-gray-200">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                        Résultats
+                                        <span className="ml-2 text-sm font-normal text-gray-500">
+                                            ({filteredEntreprises.length} entreprise{filteredEntreprises.length > 1 ? 's' : ''})
+                                        </span>
+                                    </h3>
+                                    
+                                    {filteredEntreprises.length > 0 && (
+                                        <div className="text-sm text-gray-500">
+                                            {filteredEntreprises.length} sur {entreprises.length} entreprise{entreprises.length > 1 ? 's' : ''}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {filteredEntreprises.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-12">
+                                    <div className="p-4 bg-gray-100 rounded-full mb-4">
+                                        <AlertCircle className="h-8 w-8 text-gray-400" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune entreprise trouvée</h3>
+                                    <p className="text-gray-500 text-center max-w-md">
+                                        Aucune entreprise ne correspond à vos critères de recherche. 
+                                        Essayez de modifier vos filtres ou votre recherche.
+                                    </p>
+                                    {(search || tribunalFilter) && (
+                                        <button
+                                            onClick={clearFilters}
+                                            className="mt-4 text-indigo-600 hover:text-indigo-700 font-medium"
+                                        >
+                                            Effacer tous les filtres
+                                        </button>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Entreprise
+                                                </th>
+                                                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Tribunal
+                                                </th>
+                                                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    RC
+                                                </th>
+                                                <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Actions
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {filteredEntreprises.map((entreprise) => (
+                                                <tr key={entreprise.id} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <div className="flex-shrink-0 h-10 w-10">
+                                                                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                                                    <Building2 className="h-5 w-5 text-white" />
+                                                                </div>
+                                                            </div>
+                                                            <div className="ml-4">
+                                                                <div className="text-sm font-medium text-gray-900">
+                                                                    {entreprise.denomination}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <Briefcase className="h-4 w-4 text-gray-400 mr-2" />
+                                                            <span className="text-sm text-gray-900">{entreprise.tribunal}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <FileText className="h-4 w-4 text-gray-400 mr-2" />
+                                                            <span className="text-sm font-mono text-gray-900">{entreprise.rc}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                                                        <Link
+                                                            href={`/entreprises/${entreprise.id}`}
+                                                            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+                                                        >
+                                                            <Eye className="h-4 w-4 mr-2" />
+                                                            Consulter
+                                                        </Link>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
                     </div>
-
-                    <select
-                        value={secteurFilter}
-                        onChange={(e) => setSecteurFilter(e.target.value)}
-                        className="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                    >
-                        <option value="">Tous les secteurs</option>
-                        {secteurs.map((secteur) => (
-                            <option key={secteur} value={secteur}>
-                                {secteur}
-                            </option>
-                        ))}
-                    </select>
-
-                    <select
-                        value={localisationFilter}
-                        onChange={(e) => setLocalisationFilter(e.target.value)}
-                        className="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                    >
-                        <option value="">Toutes les localisations</option>
-                        {localisations.map((loc) => (
-                            <option key={loc} value={loc}>
-                                {loc}
-                            </option>
-                        ))}
-                    </select>
                 </div>
-
-                
-                {filteredEntreprises.length === 0 ? (
-                <div className="flex h-40 flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50">
-                      <span className="text-gray-400">Aucune entreprise ne correspond à votre recherche.</span>
-                       </div>
-                        ) : (
-                                  <div className="overflow-x-auto">
-                          <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
-                    <thead className="bg-gray-50">
-                <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Entreprise
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Secteur
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                    </th>
-                </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                {filteredEntreprises.map((entreprise) => (
-                    <tr key={entreprise.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                                <Building2 className="h-5 w-5 text-indigo-500" />
-                                <span className="text-lg font-bold text-gray-800">{entreprise.nom}</span>
-                            </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <span>{entreprise.secteur}</span>
-                            </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <Link
-                                href={`/entreprises/${entreprise.id}`}
-                                className="inline-flex items-center px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-lg hover:bg-indigo-600 transition-colors"
-                            >
-                                Voir
-                            </Link>
-                        </td>
-                    </tr>
-                ))}
-                 </tbody>
-             </table>
-            </div>
-)}
-
             </div>
         </AppLayout>
     );
