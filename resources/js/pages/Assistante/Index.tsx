@@ -18,6 +18,22 @@ interface Entreprise {
     tribunal: string;
     rc: string;
 }
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PaginatedResponse<T> {
+    data: T[];
+    links: PaginationLink[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+}
 
 interface Props {
     auth: {
@@ -26,7 +42,7 @@ interface Props {
             email: string;
         };
     };
-    entreprises: Entreprise[];
+    entreprises: PaginatedResponse<Entreprise>;
 }
 
 export default function Index({ auth, entreprises }: Props) {
@@ -35,9 +51,9 @@ export default function Index({ auth, entreprises }: Props) {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [showFilters, setShowFilters] = useState(false);
 
-    const tribunals = Array.from(new Set(entreprises.map((e) => e.tribunal))).sort();
+    const tribunals = Array.from(new Set(entreprises.data.map((e) => e.tribunal))).sort();
 
-    const filteredEntreprises = entreprises.filter((entreprise) => {
+    const filteredEntreprises = entreprises.data.filter((entreprise) => {
         const matchSearch =
             entreprise.denomination.toLowerCase().includes(search.toLowerCase()) ||
             entreprise.tribunal.toLowerCase().includes(search.toLowerCase()) ||
@@ -183,7 +199,7 @@ export default function Index({ auth, entreprises }: Props) {
                                     
                                     {filteredEntreprises.length > 0 && (
                                         <div className="text-sm text-gray-500">
-                                            {filteredEntreprises.length} sur {entreprises.length} entreprise{entreprises.length > 1 ? 's' : ''}
+                                            {filteredEntreprises.length} sur {entreprises.data.length} entreprise{entreprises.data.length > 1 ? 's' : ''}
                                         </div>
                                     )}
                                 </div>
@@ -223,7 +239,6 @@ export default function Index({ auth, entreprises }: Props) {
                                                     RC
                                                 </th>
                                                 <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Actions
                                                 </th>
                                             </tr>
                                         </thead>
@@ -232,12 +247,7 @@ export default function Index({ auth, entreprises }: Props) {
                                                 <tr key={entreprise.id} className="hover:bg-gray-50 transition-colors">
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center">
-                                                            <div className="flex-shrink-0 h-10 w-10">
-                                                                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                                                                    <Building2 className="h-5 w-5 text-white" />
-                                                                </div>
-                                                            </div>
-                                                            <div className="ml-4">
+                                                            <div className="">
                                                                 <div className="text-sm font-medium text-gray-900">
                                                                     {entreprise.denomination}
                                                                 </div>
@@ -271,8 +281,32 @@ export default function Index({ auth, entreprises }: Props) {
                                     </table>
                                 </div>
                             )}
+            
                         </div>
                     </div>
+                </div>
+            </div>
+                               <div className='flex items-center justify-between px-6 py-4 bg-gray-50 border-t border-gray-200'>
+                <div className="flex items-center space-x-2">
+                    {entreprises.links.map((link, index) => (
+                        <Link
+                            key={index}
+                            href={link.url || '#'}
+                            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                link.active 
+                                    ? 'bg-indigo-600 text-white' 
+                                    : link.url 
+                                        ? 'text-gray-700 hover:bg-gray-100' 
+                                        : 'text-gray-400 cursor-not-allowed'
+                            }`}
+                            dangerouslySetInnerHTML={{ __html: link.label }}
+                        />
+                    ))}
+                </div>
+                
+                {/* Optional: Add pagination info */}
+                <div className="text-sm text-gray-500">
+                    Affichage de {entreprises.from} à {entreprises.to} sur {entreprises.total} résultats
                 </div>
             </div>
         </AppLayout>

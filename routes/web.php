@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\adminController;
 use App\Http\Controllers\assistantController;
 use App\Http\Controllers\commercantController;
 use App\Http\Controllers\EntrepriseController;
@@ -13,9 +14,7 @@ Route::get('/', function () {
 })->name('home');
 //admin routes
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [adminController::class, 'adminDashboard'])->name('dashboard');
 });
 //assistant routes
 Route::middleware(['auth', 'verified', 'role:assistant'])->group(function () {
@@ -39,7 +38,15 @@ Route::middleware(['auth', 'verified', 'role:assistant'])->group(function () {
 //commercant routes
 Route::middleware(['auth', 'verified', 'role:commerçant'])->group(function () {
     Route::get('/dashboardC', [commercantController::class, 'commercantDashboard'])->name('commercant.dashboard');
+    Route::get('/calendrier', [commercantController::class, 'calendar'])->name('commercant.calendar');
+    Route::get('/qualifier', [commercantController::class, 'qualifier'])->name('commercant.qualifier');
+    Route::get('/qualifier1/{rdvId}', [commercantController::class, 'qualified'])->name('commercant.qualified');
+    Route::get('/final/{rdvId}', [commercantController::class, 'indexfinaliser'])->name('commercant.final');
+    Route::post('/final/{rdvId}/{entrepriseId}', [commercantController::class, 'store'])->name('commercant.final.store');
+
+    
 });
+    
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

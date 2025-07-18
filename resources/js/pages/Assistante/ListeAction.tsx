@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 interface Entreprise {
     id: number;
-    nom: string;
+    denomination: string;
 }
 
 interface Action {
@@ -72,7 +72,7 @@ export default function ListeAction({ entreprise, actions, rdvs }: Props) {
             href: '/entreprises',
         },
         {
-            title: entreprise.nom,
+            title: entreprise.denomination,
             href: `/entreprises/${entreprise.id}`,
         },
         {
@@ -83,7 +83,7 @@ export default function ListeAction({ entreprise, actions, rdvs }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Actions - ${entreprise.nom}`} />
+            <Head title={`Actions - ${entreprise.denomination}`} />
 
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
                 <div className="sticky top-0 z-10 border-b border-white/30 bg-white/80 shadow-sm backdrop-blur-md">
@@ -100,7 +100,7 @@ export default function ListeAction({ entreprise, actions, rdvs }: Props) {
                             </div>
                             <div className="flex items-center space-x-3 text-slate-600">
                                 <Building size={20} />
-                                <h1 className="text-xl font-semibold text-slate-800">{entreprise.nom}</h1>
+                                <h1 className="text-xl font-semibold text-slate-800">{entreprise.denomination}</h1>
                             </div>
                         </div>
                     </div>

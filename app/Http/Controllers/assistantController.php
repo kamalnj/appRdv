@@ -22,9 +22,10 @@ class assistantController extends Controller
     }
 
     public function index()
-    {
+    {       
+        $entreprise = Entreprise::paginate(200);
         return Inertia::render('Assistante/Index', [
-            'entreprises' => Entreprise::all()
+            'entreprises' => $entreprise
         ]);
     }
         public function import(Request $request) 
@@ -225,7 +226,6 @@ public function store(Request $request, $entrepriseId)
         'commentaire' => $validated['commentaire_action'] ?? null,
     ]);
 
-    // 4. Mise à jour ou création du RDV lié à cette action
     $action->rdv()->updateOrCreate([], [
         'assistante_id' => $request->user()->id,
         'commercant_id' => $validated['commercant_id'],
