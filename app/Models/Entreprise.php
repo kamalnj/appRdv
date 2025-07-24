@@ -3,10 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+/**
+ * @property int $id
+ * @property int $id
+ * @property string $denomination
+ * @property string $tel
+ * @property string $date_rdv
+
+ */
 
 class Entreprise extends Model
 {
     public $timestamps = false;
+    
 
     protected $fillable = [
         'denomination',
@@ -32,5 +41,9 @@ class Entreprise extends Model
     public function actions()
     {
         return $this->hasMany(Action::class);
+    }
+        public function attcom()
+    {
+        return $this->hasMany(Attcom::class);
     }
 }

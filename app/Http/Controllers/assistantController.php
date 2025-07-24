@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Log;
 
 class assistantController extends Controller
 {
@@ -30,7 +30,6 @@ class assistantController extends Controller
     }
         public function import(Request $request) 
     {
-        // Validate incoming request data
         $request->validate([
             'file' => 'required|max:2048|mimes:xlsx,csv,xls',
         ]);
@@ -79,7 +78,6 @@ public function create($entrepriseId)
 {
     $entreprise = Entreprise::findOrFail($entrepriseId);
 
-    // Récupérer tous les RDV pris avec leurs commerçants 
     $rdvsPris = rdv::whereHas('commercant', function($query) {
             $query->where('role', 'commerçant');
         })
@@ -98,9 +96,7 @@ public function create($entrepriseId)
     ]);
 }
 
-    /**
-     * Store both RDV and Action from a single form submission
-     */
+   
 public function store(Request $request, $entrepriseId)
 {
     $entreprise = Entreprise::findOrFail($entrepriseId);
@@ -116,8 +112,11 @@ public function store(Request $request, $entrepriseId)
         'besoin_client' => 'required|string|max:1000',
         'commentaire_action' => 'nullable|string|max:1000',
     ]);
+    
 
     $validated['entreprise_id'] = $entreprise->id;
+
+
 
     $assistant = User::where('id', $request->user()->id)->where('role', 'assistant')->first();
     $commercant = User::where('id', $validated['commercant_id'])->where('role', 'commerçant')->first();
@@ -128,10 +127,10 @@ public function store(Request $request, $entrepriseId)
         return response()->json(['message' => 'Le commerçant sélectionné n\'est pas valide.'], 422);
     }
 
-    $dateDebut = Carbon::parse($request->date_rdv);
+    $dateDebut = Carbon::parse($request->input('date_rdv'));
     $dateFin = $dateDebut->copy()->addHours(4);
 
-    $existe = rdv::where('commercant_id', $request->commercant_id)
+    $existe = rdv::where('commercant_id', $request->input('commercant_id'))
         ->where(function ($query) use ($dateDebut, $dateFin) {
             $query->whereRaw('date_rdv < ?', [$dateFin])
                   ->whereRaw('DATE_ADD(date_rdv, INTERVAL 4 HOUR) > ?', [$dateDebut]);
@@ -170,6 +169,7 @@ public function store(Request $request, $entrepriseId)
         
     } catch (\Exception $e) {
         DB::rollback();
+        Log::error('Erreur dans la transaction', ['exception' => $e->getMessage()]);
         return response()->json(['message' => 'Erreur lors de la création du RDV et de l\'Action.'], 500);
     }
 
@@ -192,6 +192,7 @@ public function store(Request $request, $entrepriseId)
         'commentaire_action' => 'nullable|string|max:1000',
     ]);
 
+
     $assistant = User::where('id', $request->user()->id)->where('role', 'assistant')->first();
     $commercant = User::where('id', $validated['commercant_id'])->where('role', 'commerçant')->first();
 
@@ -202,10 +203,10 @@ public function store(Request $request, $entrepriseId)
         return response()->json(['message' => 'Le commerçant sélectionné n\'est pas valide.'], 422);
     }
 
- $dateDebut = Carbon::parse($request->date_rdv);
+ $dateDebut = Carbon::parse($request->input('date_rdv'));
     $dateFin = $dateDebut->copy()->addHours(4);
 
-    $existe = rdv::where('commercant_id', $request->commercant_id)
+    $existe = rdv::where('commercant_id', $request->input('commercant_id'))
         ->where(function ($query) use ($dateDebut, $dateFin) {
             $query->whereRaw('date_rdv < ?', [$dateFin])
                   ->whereRaw('DATE_ADD(date_rdv, INTERVAL 4 HOUR) > ?', [$dateDebut]);

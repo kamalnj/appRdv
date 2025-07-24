@@ -4,6 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $id
+ * @property string $date_rdv
+ * @property string $localisation
+ * @property int $entreprise_id
+ * @property string $representant
+ * @property string $email
+ * @property \App\Models\Entreprise $entreprise
+ * @property \App\Models\Action $action
+ */
+
 class Rdv extends Model
 {
     protected $table = 'rdvs';

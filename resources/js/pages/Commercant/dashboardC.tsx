@@ -5,7 +5,7 @@ import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Tableau de bord - Commerçant',
+        title: 'Tableau de bord',
         href: '/Commercant/dashboardc',
     },
 ];

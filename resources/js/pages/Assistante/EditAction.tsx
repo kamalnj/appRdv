@@ -87,7 +87,6 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
 
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
                 <div className="mx-auto max-w-4xl px-6 py-8">
-                    {/* Header */}
                     <div className="mb-8">
                         <h1 className="mb-2 text-3xl font-bold text-gray-900">Modifier l'action</h1>
                         <p className="text-lg text-gray-600">
@@ -95,7 +94,6 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
                         </p>
                     </div>
 
-                    {/* Tabs */}
                     <div className="mb-8">
                         <div className="flex rounded-2xl border border-gray-200/50 bg-white/70 p-2 shadow-sm backdrop-blur-sm">
                             <button
@@ -123,7 +121,6 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="rounded-2xl border border-gray-200/50 bg-white/70 shadow-sm backdrop-blur-sm">
-                            {/* Action Tab */}
                             <div className={`p-8 transition-all duration-300 ${activeTab === 'action' ? 'block' : 'hidden'}`}>
                                 <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-gray-900">
                                     <div className="h-2 w-2 rounded-full bg-blue-600"></div>
@@ -173,7 +170,6 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
                                 </div>
                             </div>
 
-                            {/* RDV Tab */}
                             <div className={`p-8 transition-all duration-300 ${activeTab === 'rdv' ? 'block' : 'hidden'}`}>
                                 <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-gray-900">
                                     <div className="h-2 w-2 rounded-full bg-purple-600"></div>
@@ -232,7 +228,6 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
                                 </div>
                             </div>
 
-                            {/* Submit Button */}
                             <div className="rounded-b-2xl border-t border-gray-200/50 bg-gray-50/50 px-8 py-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">

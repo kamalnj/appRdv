@@ -107,7 +107,6 @@ export default function Index({ auth, entreprises }: Props) {
                     <div className="space-y-6">
           
 
-                        {/* Import Section */}
                         <div className="bg-white rounded-xl shadow-sm border p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -144,10 +143,8 @@ export default function Index({ auth, entreprises }: Props) {
                                 )}
                             </div>
                         </div>
-                                      {/* Search and Filters */}
                         <div className="bg-white rounded-xl shadow-sm border p-6">
                             <div className="flex flex-col lg:flex-row gap-4">
-                                {/* Search Bar */}
                                 <div className="flex-1 relative">
                                     <Search className="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                                     <input
@@ -159,7 +156,6 @@ export default function Index({ auth, entreprises }: Props) {
                                     />
                                 </div>
 
-                                {/* Filters */}
                                 <div className={`flex flex-col sm:flex-row gap-4 ${showFilters ? 'block' : 'hidden lg:flex'}`}>
                                     <select
                                         value={tribunalFilter}
@@ -186,7 +182,6 @@ export default function Index({ auth, entreprises }: Props) {
                             </div>
                         </div>
 
-                        {/* Results Section */}
                         <div className="bg-white rounded-xl shadow-sm border">
                             <div className="px-6 py-4 border-b border-gray-200">
                                 <div className="flex items-center justify-between">
@@ -304,7 +299,6 @@ export default function Index({ auth, entreprises }: Props) {
                     ))}
                 </div>
                 
-                {/* Optional: Add pagination info */}
                 <div className="text-sm text-gray-500">
                     Affichage de {entreprises.from} à {entreprises.to} sur {entreprises.total} résultats
                 </div>

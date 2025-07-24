@@ -53,7 +53,6 @@ export default function Action({ entreprise, assistants, commercants, rdvsPris }
     const handleSubmit: FormEventHandler = (e) => {
         e.preventDefault();
         
-        // Additional client-side validation for RDV conflicts
         if (form.data.commercant_id && form.data.date_rdv) {
             const rdvsIndisponibles = rdvsPris[form.data.commercant_id] || [];
             const normalizeDate = (dateStr: string) => dateStr.slice(0, 16);
@@ -92,7 +91,7 @@ export default function Action({ entreprise, assistants, commercants, rdvsPris }
                         <RDVSection 
                             form={form} 
                             commercants={commercants} 
-                            rdvsPris={rdvsPris || {}} // Pass the rdvsPris prop
+                            rdvsPris={rdvsPris || {}} 
                         />
                         <SubmitButton isProcessing={form.processing} />
                     </form>

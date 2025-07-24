@@ -2,19 +2,25 @@
 
 use App\Http\Controllers\adminController;
 use App\Http\Controllers\assistantController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\commercantController;
 use App\Http\Controllers\EntrepriseController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Middleware\RoleMiddleware;
-
-
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
+use Carbon\Carbon;
 Route::get('/', function () {
     return redirect('/login');
 })->name('home');
 //admin routes
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/dashboard', [adminController::class, 'adminDashboard'])->name('dashboard');
+      Route::get('register', [RegisteredUserController::class, 'create'])
+        ->name('register');
+
+    Route::post('register', [RegisteredUserController::class, 'store']);
 });
 //assistant routes
 Route::middleware(['auth', 'verified', 'role:assistant'])->group(function () {
@@ -34,6 +40,8 @@ Route::middleware(['auth', 'verified', 'role:assistant'])->group(function () {
         ->name('actions.update');
     Route::delete('/entreprises/{entreprise}/actions/{action}/delete', [assistantController::class, 'destroy'])
         ->name('actions.destroy');
+
+
 });
 //commercant routes
 Route::middleware(['auth', 'verified', 'role:commerçant'])->group(function () {
@@ -43,6 +51,9 @@ Route::middleware(['auth', 'verified', 'role:commerçant'])->group(function () {
     Route::get('/qualifier1/{rdvId}', [commercantController::class, 'qualified'])->name('commercant.qualified');
     Route::get('/final/{rdvId}', [commercantController::class, 'indexfinaliser'])->name('commercant.final');
     Route::post('/final/{rdvId}/{entrepriseId}', [commercantController::class, 'store'])->name('commercant.final.store');
+    Route::get('/attcom1/edit/{attId}', [commercantController::class, 'updatepage'])->name('commercant.final.updateindex');
+    Route::put('/attcom/edit/{attId}', [commercantController::class, 'update'])->name('commercant.final.update');
+
 
     
 });

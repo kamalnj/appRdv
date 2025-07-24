@@ -4,6 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property bool $leve_fond
+ * @property string $commentaire
+ *  @property string $date_rdv
+
+ */
+
+
 class Action extends Model
 {
    protected $fillable = [

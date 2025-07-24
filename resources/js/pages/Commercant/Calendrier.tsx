@@ -5,7 +5,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import { Head, Link } from '@inertiajs/react';
-import { MapPin, MoveLeft, Send, X, Calendar, Clock, User, Phone, MessageCircle, Mail, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
+import { MapPin, MoveLeft, Send, X, Calendar, Clock, User, Phone, MessageCircle, Mail, CheckCircle2, XCircle, ArrowRight, Edit } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 
@@ -62,6 +62,9 @@ export default function Calendrier({ rdvs }: Props) {
         if (!event) return null;
         
         const isQualifie = qualifierConfirm === event.idEntreprise;
+        const hasAttcom = event.extendedProps.hasAttcom; 
+        const idAttcom = event.extendedProps.idAttcom;
+        console.log(idAttcom);
 
         return (
             <Dialog open={isOpen} onClose={onClose} className="relative z-50">
@@ -225,7 +228,6 @@ export default function Calendrier({ rdvs }: Props) {
                                 </div>
                             </div>
                             
-                            {/* Footer Actions */}
                             <div className="border-t border-gray-100 bg-gray-50 px-6 py-4">
                                 <div className="flex items-center justify-between">
                                     <div className="text-sm text-gray-500">
@@ -267,13 +269,22 @@ export default function Calendrier({ rdvs }: Props) {
                                             </div>
                                         )}
                                         
+                                            {hasAttcom ? (
+                                        <Link
+                                            href={`/attcom1/edit/${event.extendedProps.idAttcom}`}
+                                            className="group inline-flex items-center space-x-2 rounded-xl bg-gradient-to-r from-orange-600 to-orange-700 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:from-orange-700 hover:to-orange-800 hover:shadow-xl hover:scale-105"
+                                        >
+                                            <Edit size={16} className="transition-transform group-hover:scale-110" />
+                                            <span>Modifier</span>
+                                        </Link>
+                                    ) : (
                                         <Link
                                             href={`/final/${event.extendedProps.idRdv}`}
                                             className="group inline-flex items-center space-x-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-700 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:from-indigo-700 hover:to-purple-800 hover:shadow-xl hover:scale-105"
                                         >
                                             <span>Finaliser</span>
                                             <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                                        </Link>
+                                        </Link>)}
                                     </div>
                                 </div>
                             </div>
