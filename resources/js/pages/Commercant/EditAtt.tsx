@@ -1,8 +1,10 @@
 import AppLayout from '@/layouts/app-layout';
 
 import { type BreadcrumbItem } from '@/types';
-import { useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { router, useForm } from '@inertiajs/react';
+import { FormEventHandler, useState } from 'react';
+import SuccessModal from '@/components/ui/SuccessModal';
+
 
 interface Props {
     attData: {
@@ -19,6 +21,8 @@ interface Props {
 }
 
 export default function EditAtt({ attData }: Props) {
+        const [isModalOpen, setIsModalOpen] = useState(false);
+    
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Tableau de bord', href: 'Commercant/dashboardC' },
         { title: 'Calendrier', href: `/calendrier` },
@@ -47,10 +51,7 @@ export default function EditAtt({ attData }: Props) {
         put(`/attcom/edit/${attData.id}`, {
             onSuccess: () => {
                 reset();
-                alert('modifier!');
-            },
-            onError: (errors) => {
-                console.log('Backend validation errors:', errors);
+                setIsModalOpen(true);
             },
         });
     };
@@ -166,7 +167,15 @@ export default function EditAtt({ attData }: Props) {
                         </div>
                     </form>
                 </div>
-            </div>{' '}
+            </div>
+            
+                        <SuccessModal
+                            isOpen={isModalOpen}
+                            onClose={() => setIsModalOpen(false)}
+                            message="Modifier Avec Succès"
+                            buttonText="Continuer"
+                            onContinue={() => router.visit('/calendrier')}
+                        />
         </AppLayout>
     );
 }

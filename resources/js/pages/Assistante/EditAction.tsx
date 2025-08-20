@@ -1,7 +1,7 @@
-import AppLayout from '@/layouts/app-layout';
 import InputField from '@/components/InputField';
 import SelectField from '@/components/SelectField';
-import { FEEDBACK_OPTIONS, NEXT_STEP_OPTIONS, BESOIN_CLIENT_OPTIONS } from '@/constants/formOptions';
+import { BESOIN_CLIENT_OPTIONS, FEEDBACK_OPTIONS, NEXT_STEP_OPTIONS } from '@/constants/formOptions';
+import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { CalendarIcon, EnvelopeIcon, MapPinIcon, UserIcon } from '@heroicons/react/24/outline';
 import { Head, useForm } from '@inertiajs/react';
@@ -10,7 +10,7 @@ import { useState } from 'react';
 interface Props {
     entreprise: {
         id: number;
-        nom: string;
+        denomination: string;
     };
     action: {
         id: number;
@@ -52,7 +52,7 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
         setSaveStatus('idle');
 
         try {
-            await put(`/entreprises/${entreprise.id}/actions/${action.id}`);
+            put(`/entreprises/${entreprise.id}/actions/${action.id}`);
             setSaveStatus('success');
             setTimeout(() => setSaveStatus('idle'), 3000);
         } catch (error) {
@@ -68,7 +68,7 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
             href: '/entreprises',
         },
         {
-            title: entreprise.nom,
+            title: entreprise.denomination,
             href: `/entreprises/${entreprise.id}`,
         },
         {
@@ -83,25 +83,25 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Modifier Action - ${entreprise.nom}`} />
+            <Head title={`Modifier Action - ${entreprise.denomination}`} />
 
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
                 <div className="mx-auto max-w-4xl px-6 py-8">
                     <div className="mb-8">
-                        <h1 className="mb-2 text-3xl font-bold text-gray-900">Modifier l'action</h1>
-                        <p className="text-lg text-gray-600">
-                            Pour l'entreprise <span className="font-semibold text-blue-600">{entreprise.nom}</span>
+                        <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Modifier l'action</h1>
+                        <p className="text-lg text-gray-600 dark:text-gray-400">
+                            Pour l'entreprise <span className="font-semibold text-blue-600">{entreprise.denomination}</span>
                         </p>
                     </div>
 
                     <div className="mb-8">
-                        <div className="flex rounded-2xl border border-gray-200/50 bg-white/70 p-2 shadow-sm backdrop-blur-sm">
+                        <div className="flex rounded-2xl border border-gray-200/50 bg-white/70 p-2 shadow-sm backdrop-blur-sm dark:border-neutral-700 dark:bg-neutral-800/70">
                             <button
                                 onClick={() => setActiveTab('action')}
                                 className={`flex-1 rounded-xl px-6 py-3 font-semibold transition-all duration-200 ${
                                     activeTab === 'action'
                                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
-                                        : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
+                                        : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white'
                                 }`}
                             >
                                 Détails de l'action
@@ -111,7 +111,7 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
                                 className={`flex-1 rounded-xl px-6 py-3 font-semibold transition-all duration-200 ${
                                     activeTab === 'rdv'
                                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
-                                        : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
+                                        : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white'
                                 }`}
                             >
                                 Rendez-vous associé
@@ -120,9 +120,9 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="rounded-2xl border border-gray-200/50 bg-white/70 shadow-sm backdrop-blur-sm">
+                        <div className="rounded-2xl border border-gray-200/50 bg-white/70 shadow-sm backdrop-blur-sm dark:border-neutral-700 dark:bg-neutral-800/70 p-6">
                             <div className={`p-8 transition-all duration-300 ${activeTab === 'action' ? 'block' : 'hidden'}`}>
-                                <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-gray-900">
+                                <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
                                     <div className="h-2 w-2 rounded-full bg-blue-600"></div>
                                     Détails de l'action
                                 </h2>
@@ -171,7 +171,7 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
                             </div>
 
                             <div className={`p-8 transition-all duration-300 ${activeTab === 'rdv' ? 'block' : 'hidden'}`}>
-                                <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-gray-900">
+                                <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
                                     <div className="h-2 w-2 rounded-full bg-purple-600"></div>
                                     Rendez-vous associé
                                 </h2>
@@ -228,7 +228,7 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
                                 </div>
                             </div>
 
-                            <div className="rounded-b-2xl border-t border-gray-200/50 bg-gray-50/50 px-8 py-6">
+                            <div className="rounded-b-2xl border-t border-gray-200/50 bg-gray-50/50 px-8 py-6 dark:border-neutral-700 dark:bg-neutral-800/50">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         {saveStatus === 'success' && (

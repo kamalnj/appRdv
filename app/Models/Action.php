@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property int $id
- * @property bool $leve_fond
+ * @property string $feedback
+ * @property string $next_step
+ * @property string $besoin_client
  * @property string $commentaire
  *  @property string $date_rdv
 

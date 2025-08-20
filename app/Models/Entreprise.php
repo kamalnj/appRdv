@@ -9,13 +9,18 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $denomination
  * @property string $tel
  * @property string $date_rdv
+ * @property string $adresse
+
 
  */
 
 class Entreprise extends Model
 {
     public $timestamps = false;
-    
+        protected $casts = [
+    'tel' => 'array',
+    'diregeants' => 'array',
+    ];
 
     protected $fillable = [
         'denomination',
@@ -44,6 +49,6 @@ class Entreprise extends Model
     }
         public function attcom()
     {
-        return $this->hasMany(Attcom::class);
+        return $this->hasOne(Attcom::class);
     }
 }

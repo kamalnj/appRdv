@@ -17,7 +17,7 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next , ...$roles): Response
     {
         if (!Auth::check() || !in_array(Auth::user()->role, $roles)) {
-            return response()->view('errors.unauthorized', [], 403);
+            return redirect()->route('home')->with('error', 'Accès non autorisé.');
         }
         return $next($request);
     }

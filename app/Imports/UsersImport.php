@@ -3,64 +3,133 @@
 namespace App\Imports;
 
 use App\Models\Entreprise;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 
 class UsersImport implements ToModel, WithStartRow
 {
-    /**
-     * Specify the row number to start reading from.
-     *
-     * @return int
-     */
+    private array $seenRC = [];
+
     public function startRow(): int
     {
-        return 2; // Skip the header row
+        return 2; // skip header
     }
 
     /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
+     * Decode Unicode escape sequences like \u00e9 to é
+     */
 
-
-    
     public function model(array $row)
     {
+        // simple guard: expect at least denomination and rc
+        if (count($row) < 2) {
+            throw ValidationException::withMessages([
+                'file' => "Import bloqué : ligne incomplète (au moins Dénomination et RC requis)."
+            ]);
+        }
 
-        
-        return new Entreprise([
-            'denomination' => $row[0],
-            'rc' => $row[1],
-            'tribunal' => $row[2],
-            'capital_social' => $row[3],
-            'adresse' => $row[4],
-            'object_social' => $row[5],
-            'ice' => $row[6],
-            'bilan_date' =>$row[7],
-            'chiffre_affaire' => $row[8],
-            'tel' => $row[9] ?? null,
-            'diregeants' => $row[10] ?? null,
-        ]);
-    }
-    
+        $denomination = isset($row[0]) ? (string)$row[0] : '';
+        $rc = isset($row[1]) ? (string)$row[1] : '';
 
-    public function rules(): array
-    {
-        return [
-            '0' => 'required|string|max:255', // denomination
-            '1' => 'required|string|max:255', // rc
-            '2' => 'required|string|max:255', // tribunal
-            '3' => 'required|string|max:255', // capital_social
-            '4'=> 'required|string|max:255', // adresse
-            '5' => 'required|string|max:255', // object_social
-            '6' => 'required|string|max:255', // ice
-            '7' => 'required|date', // bilan_date
-            '8' => 'required|numeric', // chiffre_affaire
-            '9' => 'nullable|string|max:20', // tel
-            '10' => 'nullable|string|max:255', // dirigeants
-        
+        // required check
+        if ($denomination === '' || $rc === '') {
+            throw ValidationException::withMessages([
+                'file' => "Import bloqué : 'Dénomination' ou 'RC' manquant pour une ligne."
+            ]);
+        }
+
+        // duplicate in same file
+        if (in_array($rc, $this->seenRC, true)) {
+            throw ValidationException::withMessages([
+                'file' => "Import bloqué : RC dupliqué dans le fichier — '{$rc}'."
+            ]);
+        }
+        $this->seenRC[] = $rc;
+
+        // exists in DB
+        if (Entreprise::where('rc', $rc)->exists()) {
+            throw ValidationException::withMessages([
+                'file' => "Import bloqué : RC '{$rc}' existe déjà dans la base."
+            ]);
+        }
+
+        // parse tel -> array (separator ;)
+        $telsRaw = isset($row[9]) ? (string)$row[9] : '';
+        $tels = [];
+        if ($telsRaw !== '') {
+            $parts = array_map('trim', explode(';', $telsRaw));
+            $parts = array_filter($parts, fn($p) => $p !== '');
+            $tels = array_values($parts);
+        }
+
+        $dirRaw = $row[10] ?? '';
+        $dirigeants = [];
+
+        if ($dirRaw !== '') {
+            $parts = array_map('trim', explode('|', $dirRaw));
+            $parts = array_filter($parts, fn($p) => $p !== '');
+
+            foreach ($parts as $part) {
+                // Remove labels (nom:, prénom:, dénomination:, fonction:)
+                $cleaned = preg_replace('/\b(nom:|prénom:|dénomination:|fonction:)\s*/i', '', $part);
+
+                // Example: "ITURRI FRANCO JUAN FRANCISCO GRNT"
+                // Split into words
+                $words = preg_split('/\s+/', $cleaned);
+
+                if (count($words) >= 2) {
+                    $nom = array_shift($words);                // first word = surname
+                    $fonction = array_pop($words);             // last word = fonction
+                    $prenom = implode(' ', $words);            // middle words = firstname(s)
+
+                    $dirigeants[] = [
+                        'nom' => $nom,
+                        'prenom' => $prenom,
+                        'fonction' => $fonction,
+                    ];
+                } else {
+                    // fallback if format is weird
+                    $dirigeants[] = [
+                        'nom' => $cleaned,
+                        'prenom' => '',
+                        'fonction' => '',
+                    ];
+                }
+            }
+        }
+        $requiredFields = [
+            2 => 'Tribunal',
+            3 => 'Capital social',
+            4 => 'Adresse',
+            5 => 'Objet social',
+            6 => 'ICE',
+            7 => 'Date du bilan',
+            8 => 'Chiffre d\'affaires',
         ];
+
+        foreach ($requiredFields as $index => $label) {
+            if (!isset($row[$index]) || trim((string)$row[$index]) === '') {
+                throw ValidationException::withMessages([
+                    'file' => "Import bloqué : la colonne '{$label}' est manquante pour RC '{$rc}'."
+                ]);
+            }
+        }
+
+
+        // return model (keep 'diregeants' key as requested)
+        return new Entreprise([
+            'denomination' => $denomination,
+            'rc' => $rc,
+            'tribunal' => isset($row[2]) ? (string)$row[2] : null,
+            'capital_social' => isset($row[3]) ? (string)$row[3] : null,
+            'adresse' => isset($row[4]) ? (string)$row[4] : null,
+            'object_social' => isset($row[5]) ? (string)$row[5] : null,
+            'ice' => isset($row[6]) ? (string)$row[6] : null,
+            'bilan_date' => isset($row[7]) ? (string)$row[7] : null,
+            'chiffre_affaire' => isset($row[8]) ? (string)$row[8] : null,
+            'tel' => $tels,                // array
+            'diregeants' => $dirigeants,   // array (kept typo)
+        ]);
     }
 }

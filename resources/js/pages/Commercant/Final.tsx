@@ -1,7 +1,9 @@
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { router, useForm } from '@inertiajs/react';
+import { FormEventHandler, useState } from 'react';
+import SuccessModal from '@/components/ui/SuccessModal';
+
 
 interface FinalFormData {
         [key: string]: string | boolean;
@@ -21,6 +23,8 @@ interface Props {
 }
 
 export default function Final({ rdvs, entreprise }: Props) {
+            const [isModalOpen, setIsModalOpen] = useState(false);
+    
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Tableau de bord', href: 'Commercant/dashboardC' },
         { title: 'Calendrier', href: `/calendrier` },
@@ -45,10 +49,7 @@ export default function Final({ rdvs, entreprise }: Props) {
         post(`/final/${rdvs.id}/${entreprise.id}`, {
             onSuccess: () => {
                 reset();
-                alert('RDV et Action créés avec succès!');
-            },
-            onError: (errors) => {
-                console.log('Backend validation errors:', errors);
+                setIsModalOpen(true);
             },
         });
     };
@@ -167,6 +168,13 @@ export default function Final({ rdvs, entreprise }: Props) {
                     </form>
                 </div>
             </div>
+                         <SuccessModal
+                                        isOpen={isModalOpen}
+                                        onClose={() => setIsModalOpen(false)}
+                                        message="Enregistrer Avec Succès"
+                                        buttonText="Continuer"
+                                        onContinue={() => router.visit('/calendrier')}
+                                    />
         </AppLayout>
     );
 }

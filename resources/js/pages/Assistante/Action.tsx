@@ -1,11 +1,11 @@
-// Updated Action.tsx
+import SuccessModal from '@/components/ui/SuccessModal';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { FormEventHandler, useState } from 'react';
 
-import PageHeader from '@/components/PageHeader';
 import ActionSection from '@/components/ActionSection';
+import PageHeader from '@/components/PageHeader';
 import RDVSection from '@/components/RDVSection';
 import SubmitButton from '@/components/SubmitButton';
 
@@ -21,16 +21,21 @@ interface CombinedData {
     next_step: string;
     besoin_client: string;
     commentaire_action: string;
+    fonction: string;
+    telephone: string;
+
 }
 
 interface Props {
     entreprise: { id: number; denomination: string };
     assistants: Array<{ id: number; name: string }>;
     commercants: Array<{ id: number; name: string }>;
-    rdvsPris: Record<string, string[]>; 
+    rdvsPris: Record<string, string[]>;
 }
 
-export default function Action({ entreprise, assistants, commercants, rdvsPris }: Props) {
+export default function Action({ entreprise, commercants, rdvsPris }: Props) {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Entreprises', href: '/entreprises' },
         { title: entreprise.denomination, href: `/entreprises/${entreprise.id}` },
@@ -48,55 +53,44 @@ export default function Action({ entreprise, assistants, commercants, rdvsPris }
         next_step: '',
         besoin_client: '',
         commentaire_action: '',
+        fonction:'',
+        telephone:'',
     });
 
     const handleSubmit: FormEventHandler = (e) => {
         e.preventDefault();
-        
-        if (form.data.commercant_id && form.data.date_rdv) {
-            const rdvsIndisponibles = rdvsPris[form.data.commercant_id] || [];
-            const normalizeDate = (dateStr: string) => dateStr.slice(0, 16);
-            
-            if (rdvsIndisponibles.some(d => normalizeDate(d) === normalizeDate(form.data.date_rdv))) {
-                alert('Ce créneau est déjà réservé, veuillez en choisir un autre.');
-                return;
-            }
-        }
-        
-        console.log('Form data:', form.data);
         form.post(`/entreprises/${entreprise.id}/action`, {
             onSuccess: () => {
-                form.reset();
-                alert('RDV et Action créés avec succès!');
+                setIsModalOpen(true);
             },
-            onError: (errors) => {
-                console.log('Backend validation errors:', errors);
-            }
         });
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={entreprise.denomination} />
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
                 <div className="mx-auto max-w-5xl px-4">
-                    <PageHeader
-                        title="Créer RDV et Action"
-                        subtitle="Entreprise:"
-                        entrepriseName={entreprise.denomination}
+                    <PageHeader 
+                        title="Créer RDV et Action" 
+                        subtitle="Entreprise:" 
+                        entrepriseName={entreprise.denomination} 
                     />
 
                     <form onSubmit={handleSubmit} className="space-y-8">
                         <ActionSection form={form} />
-                        <RDVSection 
-                            form={form} 
-                            commercants={commercants} 
-                            rdvsPris={rdvsPris || {}} 
-                        />
+                        <RDVSection form={form} commercants={commercants} rdvsPris={rdvsPris || {}} />
                         <SubmitButton isProcessing={form.processing} />
                     </form>
                 </div>
             </div>
+            <SuccessModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                message="Rendez-vous Créer Avec Succés !"
+                buttonText="Continuer"
+                onContinue={() => router.visit(`/entreprises/${entreprise.id}`)}
+            />
         </AppLayout>
     );
 }

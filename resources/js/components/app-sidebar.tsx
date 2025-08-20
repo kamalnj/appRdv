@@ -19,7 +19,6 @@ export function AppSidebar() {
 
     const { auth } = usePage<PageProps>().props;
     const user = auth?.user?.role || 'assistant';
-    const userId = auth?.user?.id;
 
     const assistantNavItems: NavItem[] = [
         {
@@ -38,6 +37,13 @@ export function AppSidebar() {
             title: 'Tableau de bord',
             href: '/dashboard',
             icon: LayoutGrid,
+            
+        },
+        {
+            title: 'Gestion des entreprises',
+            href: '/entreprise',
+            icon: BriefcaseBusinessIcon,
+            
         },
     ];
     const commerçantNavItems: NavItem[] = [

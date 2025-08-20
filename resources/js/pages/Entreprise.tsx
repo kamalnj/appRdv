@@ -1,10 +1,13 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Briefcase, Search,Eye, FileText, AlertCircle, X, Settings } from 'lucide-react';
-import { useState } from 'react';
+import { Briefcase, Search,Eye, FileText, AlertCircle, X, Settings, Upload, Delete, RotateCcw } from 'lucide-react';
+import {  useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import SuccessModal from '@/components/ui/SuccessModal';
+import { usePage } from '@inertiajs/react';
+import ErrorModal from '@/components/ui/ErrorModal'; 
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -13,22 +16,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-interface AttCom {
-    loi?: boolean;
-    dossier_technique?: boolean;
-    leve_fond?: boolean;
-    iso?: boolean;
-    test?: boolean;
-    test_?: boolean;
-    [key: string]: boolean | undefined;
-}
 
 interface Entreprise {
     id: number;
     denomination: string;
     tribunal: string;
     rc: string;
-    attcom?: AttCom;
 }
 
 interface PaginationLink {
@@ -56,32 +49,31 @@ interface Props {
         };
     };
     entreprises: PaginatedResponse<Entreprise>;
-    filters?: { [key: string]: boolean };
 }
 
-// Configuration des filtres de documents (basée sur votre code)
-const docFields = [
-    { key: 'loi', label: 'Loi' },
-    { key: 'dossier_technique', label: 'Dossier Technique'},
-    { key: 'leve_fond', label: 'Levée de Fonds' },
-    { key: 'iso', label: 'ISO'},
-    { key: 'test', label: 'Test'},
-    { key: 'test_', label: 'Test_'},
-];
 
-export default function Index({ auth, entreprises, filters = {} }: Props) {
+
+export default function Index({  entreprises  }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [search, setSearch] = useState('');
     const [tribunalFilter, setTribunalFilter] = useState('');
-    // const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [showFilters, setShowFilters] = useState(false);
-    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-    const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: boolean }>(filters || {});
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const tribunals = Array.from(new Set(entreprises.data.map((e) => e.tribunal))).sort();
 
+    //error handling
+        const { flash } = usePage<{ flash?: { error?: string } }>().props;
+    const [isErrorOpen, setIsErrorOpen] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    useEffect(() => {
+        if (flash?.error) {
+            setErrorMessage(flash.error);
+            setIsErrorOpen(true);
+        }
+    }, [flash]);
+
     // Compter les filtres actifs
-    const activeFiltersCount = Object.values(selectedFilters).filter(Boolean).length;
 
     const filteredEntreprises = entreprises.data.filter((entreprise) => {
         const matchSearch =
@@ -98,57 +90,63 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
         file: null as File | null,
     });
 
-    // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     const file = e.target.files?.[0];
-    //     setSelectedFile(file || null);
-    //     setData('file', file || null);
-    // };
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        setSelectedFile(file || null);
+        setData('file', file || null);
+    };
+const handleImport = () => { 
+    if (!selectedFile) {
+        alert("Veuillez sélectionner un fichier.");
+        return;
+    }
 
-    // const handleImport = () => {
-    //     if (!selectedFile) {
-    //         alert("Veuillez sélectionner un fichier.");
-    //         return;
-    //     }
+    post(`/users-import`, {
+        forceFormData: true,
+        onSuccess: () => {
+            // Only executed when backend returned success (redirect with success flash)
+            reset();
+            setSelectedFile(null);
+            setIsModalOpen(true);
+        },
+        onError: (errors) => {
+            // errors is the Laravel validation-style object: { file: ["message"] }
+            // Be defensive and extract the first useful message
+            let msg = "Une erreur s'est produite lors de l'importation. Veuillez réessayer.";
 
-    //     post(`/users-import`, {
-    //         forceFormData: true,
-    //         onSuccess: () => {
-    //             reset();
-    //             setSelectedFile(null);
-    //             setIsModalOpen(true);
-    //         },
-    //     });
-    // };
+            if (errors) {
+                if (Array.isArray(errors.file) && errors.file.length > 0) {
+                    msg = errors.file[0];
+                } else {
+                    // fallback: try first property
+                    const firstKey = Object.keys(errors)[0];
+                    const firstVal = errors[firstKey];
+                    if (Array.isArray(firstVal) && firstVal.length > 0) {
+                        msg = firstVal[0];
+                    } else if (typeof firstVal === 'string') {
+                        msg = firstVal;
+                    }
+                }
+            }
+
+            alert(msg); // or set state to show your ErrorModal with msg
+        }
+    });
+};
+
+
 
     const clearFilters = () => {
         setSearch('');
         setTribunalFilter('');
-        setSelectedFilters({});
-        // Rediriger pour nettoyer l'URL
-        router.visit(route('entreprises.index'), { 
+        router.visit(route('entreprise.index'), { 
             method: 'get',
             preserveState: false 
         });
     };
 
-    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, checked } = e.target;
-        setSelectedFilters((prev) => ({
-            ...prev,
-            [name]: checked,
-        }));
-    };
 
-    const applyAdvancedFilters = () => {
-        router.get(route('entreprises.index'), {
-            filters: selectedFilters,
-        }, {
-            preserveScroll: true,
-            preserveState: true,
-        });
-        
-        setShowAdvancedFilters(false);
-    };
+
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -158,7 +156,7 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
                     <div className="space-y-6">
                         
-                        {/* Section Import
+                        {/* Section Import */}
                         <div className="bg-white rounded-xl shadow-sm border p-6 dark:border-neutral-700/60 dark:bg-neutral-900/70 dark:text-white">
                             <div className="flex items-center justify-between mb-4 ">
                                 <h2 className="text-lg font-semibold dark:text-white text-gray-900 flex items-center gap-2">
@@ -194,7 +192,7 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                     </div>
                                 )}
                             </div>
-                        </div> */}
+                        </div>
 
                         {/* Section Recherche et Filtres */}
                         <div className="bg-white rounded-xl shadow-sm border p-6 dark:border-neutral-700/60 dark:bg-neutral-900/70">
@@ -210,31 +208,9 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                             value={search}
                                             onChange={(e) => setSearch(e.target.value)}
                                         />
+                                        
                                     </div>
-
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                                            className={`inline-flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                                                activeFiltersCount > 0 
-                                                    ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' 
-                                                    : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
-                                            }`}
-                                        >
-                                            <Settings className="h-4 w-4 mr-2" />
-                                            Filtres avancés
-                                            {activeFiltersCount > 0 && (
-                                                <span className="ml-2 bg-indigo-600 text-white rounded-full px-2 py-0.5 text-xs">
-                                                    {activeFiltersCount}
-                                                </span>
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Filtres standards */}
-                                <div className="flex flex-col sm:flex-row gap-4">
-                                    <select
+                                               <select
                                         value={tribunalFilter}
                                         onChange={(e) => setTribunalFilter(e.target.value)}
                                         className="dark:border-neutral-600 dark:bg-neutral-800 dark:text-white rounded-lg border border-gray-300 px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all min-w-48"
@@ -247,7 +223,12 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                         ))}
                                     </select>
 
-                                    {(search || tribunalFilter || activeFiltersCount > 0) && (
+                           
+                                </div>
+
+                                {/* Filtres standards */}
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    {(search || tribunalFilter ) && (
                                         <button
                                             onClick={clearFilters}
                                             className="inline-flex items-center px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
@@ -258,78 +239,7 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                     )}
                                 </div>
 
-                                {/* Filtres avancés */}
-                                {showAdvancedFilters && (
-                                    <div className="border-t pt-4 mt-4">
-                                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                            Filtres avancés
-                                        </h4>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                            {docFields.map((filter) => (
-                                                <label
-                                                    key={filter.key}
-                                                    className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
-                                                        selectedFilters[filter.key]
-                                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-900/20 dark:border-indigo-400'
-                                                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300'
-                                                    }`}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        name={filter.key}
-                                                        className="sr-only"
-                                                        checked={!!selectedFilters[filter.key]}
-                                                        onChange={handleCheckboxChange}
-                                                    />
-                                                    <span className="text-sm font-medium">{filter.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                        <div className="flex justify-end gap-2 mt-4">
-                                            <button
-                                                onClick={() => setShowAdvancedFilters(false)}
-                                                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                                            >
-                                                Annuler
-                                            </button>
-                                            <button
-                                                onClick={applyAdvancedFilters}
-                                                className="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-                                            >
-                                                Appliquer les filtres
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Filtres actifs */}
-                                {activeFiltersCount > 0 && (
-                                    <div className="flex flex-wrap gap-2 pt-2 border-t">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">Filtres actifs:</span>
-                                        {Object.entries(selectedFilters).map(([key, value]) => {
-                                            if (!value) return null;
-                                            const filter = docFields.find(f => f.key === key);
-                                            return (
-                                                <span
-                                                    key={key}
-                                                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300"
-                                                >
-                                                    {filter?.label}
-                                                    <button
-                                                        onClick={() => {
-                                                            const newFilters = { ...selectedFilters };
-                                                            delete newFilters[key];
-                                                            setSelectedFilters(newFilters);
-                                                        }}
-                                                        className="ml-2 hover:text-indigo-600 dark:hover:text-indigo-400"
-                                                    >
-                                                        <X className="h-3 w-3" />
-                                                    </button>
-                                                </span>
-                                            );
-                                        })}
-                                    </div>
-                                )}
+                               
                             </div>
                         </div>
 
@@ -362,7 +272,7 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                         Aucune entreprise ne correspond à vos critères de recherche. 
                                         Essayez de modifier vos filtres ou votre recherche.
                                     </p>
-                                    {(search || tribunalFilter || activeFiltersCount > 0) && (
+                                    {(search || tribunalFilter) && (
                                         <button
                                             onClick={clearFilters}
                                             className="mt-4 text-indigo-600 hover:text-indigo-700 font-medium"
@@ -398,22 +308,7 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                                                 <div className="text-sm font-medium text-gray-900 dark:text-neutral-50">
                                                                     {entreprise.denomination}
                                                                 </div>
-                                                                {entreprise.attcom && (
-                                                                    <div className="mt-1 flex flex-wrap gap-1">
-                                                                        {docFields.map(({ key }) => (
-                                                                            <span
-                                                                                key={key}
-                                                                                className={`inline-flex items-center px-1.5 py-0.5 text-xs rounded ${
-                                                                                    entreprise.attcom?.[key] 
-                                                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                                                                                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
-                                                                                }`}
-                                                                                title={docFields.find(f => f.key === key)?.label}
-                                                                            >
-                                                                            </span>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
+                                                  
                                                             </div>
                                                         </div>
                                                     </td>
@@ -432,10 +327,24 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                                     <td className="px-6 py-4 whitespace-nowrap text-right">
                                                         <Link
                                                             href={`/entreprises/${entreprise.id}`}
-                                                            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+                                                            className="inline-flex mr-2 items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
                                                         >
                                                             <Eye className="h-4 w-4 mr-2" />
-                                                            Consulter
+                                                            Voir
+                                                        </Link>
+                                                          <Link
+                                                            href={`/entreprises/${entreprise.id}`}
+                                                            className="inline-flex mr-2 items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+                                                        >
+                                                            <RotateCcw className="h-4 w-4 mr-2" />
+                                                            Modifier
+                                                        </Link>
+                                                          <Link
+                                                            href={`/entreprises/${entreprise.id}`}
+                                                            className="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors shadow-sm"
+                                                        >
+                                                            <Delete className="h-4 w-4 mr-2" />
+                                                            Supprimer
                                                         </Link>
                                                     </td>
                                                 </tr>
@@ -480,6 +389,13 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                 buttonText="Continuer"
                 onContinue={() => router.visit('/entreprises')}
             />
+                    <ErrorModal
+                isOpen={isErrorOpen}
+                onClose={() => setIsErrorOpen(false)}
+                message={errorMessage}
+                buttonText="Fermer"
+            />
+            
         </AppLayout>
     );
 }

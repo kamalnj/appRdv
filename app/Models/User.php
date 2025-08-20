@@ -55,4 +55,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+       public function rdvs()
+    {
+        return $this->hasMany(Rdv::class);
+    }
+           public function upComingRdvs()
+    {
+        return $this->hasMany(Rdv::class,'commercant_id')->where('date_rdv', '>=', now());
+;
+    }
 }

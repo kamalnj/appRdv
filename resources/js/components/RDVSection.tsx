@@ -1,4 +1,3 @@
-// components/RDVSection.tsx - Improved version
 import React, { useMemo } from 'react';
 import FormSection from './FormSection';
 import FormField from './FormField';
@@ -12,6 +11,8 @@ interface RDVSectionProps {
       email: string;
       date_rdv: string;
       localisation: string;
+      fonction: string;
+      telephone: string;
     };
     errors: {
       commercant_id?: string;
@@ -19,11 +20,13 @@ interface RDVSectionProps {
       email?: string;
       date_rdv?: string;
       localisation?: string;
+      fonction?: string;
+    telephone?: string;
     };
     setData: (field: string, value: string) => void;
   };
   commercants: Array<{ id: number; name: string }>;
-  rdvsPris: Record<string, string[]>; // clef: id commercant, valeur: liste de dates
+  rdvsPris: Record<string, string[]>;
 }
 
 export default function RDVSection({ form, commercants, rdvsPris }: RDVSectionProps) {
@@ -72,8 +75,8 @@ export default function RDVSection({ form, commercants, rdvsPris }: RDVSectionPr
       title="Rendez-vous"
       subtitle="Planification du rendez-vous"
       icon={<CalendarIcon className="h-5 w-5 text-blue-600" />}
-      iconBgColor="bg-blue-100"
-      headerBgColor="bg-gradient-to-r from-blue-50 to-indigo-50"
+            iconBgColor="bg-emerald-100 dark:bg-emerald-900"
+            headerBgColor="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-neutral-800 dark:to-neutral-900"
     >
       <FormField
         label="Commerçant"
@@ -96,6 +99,28 @@ export default function RDVSection({ form, commercants, rdvsPris }: RDVSectionPr
         error={form.errors.representant}
         required
         placeholder="Nom du représentant"
+        icon={<UserIcon className="h-4 w-4 text-gray-400" />}
+      />
+            <FormField
+        label="Fonction"
+        name="fonction"
+        type="text"
+        value={form.data.fonction}
+        onChange={(value) => form.setData('fonction', value)}
+        error={form.errors.fonction}
+        required
+        placeholder="Fonction du représentant"
+        icon={<UserIcon className="h-4 w-4 text-gray-400" />}
+      />
+            <FormField
+        label="Télèphone"
+        name="telephone"
+        type="tel"
+        value={form.data.telephone}
+        onChange={(value) => form.setData('telephone', value)}
+        error={form.errors.telephone}
+        required
+        placeholder="Télèphone du représentant"
         icon={<UserIcon className="h-4 w-4 text-gray-400" />}
       />
 

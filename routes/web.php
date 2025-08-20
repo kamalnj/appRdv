@@ -4,13 +4,9 @@ use App\Http\Controllers\adminController;
 use App\Http\Controllers\assistantController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\commercantController;
-use App\Http\Controllers\EntrepriseController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use App\Http\Middleware\RoleMiddleware;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Carbon\Carbon;
+
+
 Route::get('/', function () {
     return redirect('/login');
 })->name('home');
@@ -19,14 +15,20 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/dashboard', [adminController::class, 'adminDashboard'])->name('dashboard');
       Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
-
+    Route::get('/entreprise', [adminController::class, 'index'])->name('entreprise.index');
     Route::post('register', [RegisteredUserController::class, 'store']);
+    Route::delete('/user/{userId}',[adminController::class , 'destroy'])->name('user.destroy');
+    Route::post('/users-import', [adminController::class, 'import'])->name('users.import');
+    Route::get('/entreprise/{entreprise}/edit', [adminController::class, 'updatepage'])->name('admin.edit');
+    Route::put('/entreprise/{entreprise}', [adminController::class, 'update'])->name('admin.update');
+    Route::delete('/entreprise/{entreprise}', [adminController::class, 'delete'])->name('admin.destroy');
+    Route::get('/entreprises/{entreprise}', [adminController::class, 'show'])->name('entreprises.index');
+;
 });
 //assistant routes
 Route::middleware(['auth', 'verified', 'role:assistant'])->group(function () {
     Route::get('/dashboardA', [assistantController::class, 'assistantDashboard'])->name('assistant.dashboard');
     Route::get('/entreprises', [assistantController::class, 'index'])->name('entreprises.index');
-    Route::post('/users-import', [assistantController::class, 'import'])->name('users.import');
     Route::get('/entreprises/{entreprise}', [assistantController::class, 'indexSimple'])->name('entreprises.indexSimple');
     Route::get('/entreprises/{entreprise}/action', [assistantController::class, 'create'])
         ->name('entreprises.actions.create');
@@ -35,7 +37,6 @@ Route::middleware(['auth', 'verified', 'role:assistant'])->group(function () {
     Route::get('/entreprises/{entreprise}/liste-actions', [assistantController::class, 'indexActions'])->name('entreprises.indexActions');
     Route::get('/entreprises/{entreprise}/actions/{action}/edit', [assistantController::class, 'edit'])
         ->name('actions.edit');
-
     Route::put('/entreprises/{entreprise}/actions/{action}', [assistantController::class, 'update'])
         ->name('actions.update');
     Route::delete('/entreprises/{entreprise}/actions/{action}/delete', [assistantController::class, 'destroy'])
@@ -47,7 +48,7 @@ Route::middleware(['auth', 'verified', 'role:assistant'])->group(function () {
 Route::middleware(['auth', 'verified', 'role:commerçant'])->group(function () {
     Route::get('/dashboardC', [commercantController::class, 'commercantDashboard'])->name('commercant.dashboard');
     Route::get('/calendrier', [commercantController::class, 'calendar'])->name('commercant.calendar');
-    Route::get('/qualifier', [commercantController::class, 'qualifier'])->name('commercant.qualifier');
+    Route::get('/noqualifier/{rdvId}', [commercantController::class, 'notqualified'])->name('commercant.notqualified');
     Route::get('/qualifier1/{rdvId}', [commercantController::class, 'qualified'])->name('commercant.qualified');
     Route::get('/final/{rdvId}', [commercantController::class, 'indexfinaliser'])->name('commercant.final');
     Route::post('/final/{rdvId}/{entrepriseId}', [commercantController::class, 'store'])->name('commercant.final.store');
@@ -57,6 +58,8 @@ Route::middleware(['auth', 'verified', 'role:commerçant'])->group(function () {
 
     
 });
+
+
     
 
 require __DIR__ . '/settings.php';
