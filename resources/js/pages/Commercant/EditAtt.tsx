@@ -104,27 +104,27 @@ export default function EditAtt({ attData }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-6">
-                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
                     <div className="mb-6">
-                        <h1 className="mb-2 text-2xl font-semibold text-gray-900">Mise à jour Finalisation</h1>
-                        <p className="text-gray-600">Sélectionnez les éléments requis pour finaliser le processus</p>
+                        <h1 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-white">Mise à jour Finalisation</h1>
+                        <p className="text-gray-600 dark:text-white">Sélectionnez les éléments requis pour finaliser le processus</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid gap-4 md:grid-cols-2">
                             {checkboxItems.map((item) => (
                                 <div key={item.key} className="relative">
-                                    <label className="flex cursor-pointer items-start space-x-3 rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50">
+                                    <label className="flex cursor-pointer items-start space-x-3 rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                         <input
                                             type="checkbox"
                                             name={item.key}
                                             checked={data[item.key]} 
                                             onChange={(e) => setData(item.key, e.target.checked)}
-                                            className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-offset-gray-800"
                                         />
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-sm font-medium text-gray-900">{item.label}</span>
+                                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.label}</span>
                                             </div>
                                             <p className="mt-1 text-sm text-gray-500">{item.description}</p>
                                         </div>

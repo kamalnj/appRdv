@@ -9,10 +9,8 @@ import {
     Building2,
     Calendar,
     CheckCircle,
-    CirclePlus,
     Copy,
     DollarSign,
-    ExternalLink,
     FileText,
     Hash,
     MapPin,
@@ -40,8 +38,6 @@ interface Entreprise {
         prenom: string;
         fonction: string;
     }>;
-    hasRdv?: boolean;
-    hasAction?: boolean;
 }
 
 interface Props {
@@ -54,7 +50,7 @@ interface Props {
     entreprise: Entreprise;
 }
 
-export default function IndexSimple({ entreprise }: Props) {
+export default function Details({ entreprise }: Props) {
     const [copiedField, setCopiedField] = useState<string | null>(null);
     
     interface ExpandableTextProps {
@@ -97,7 +93,7 @@ export default function IndexSimple({ entreprise }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Entreprises',
-            href: '/entreprises',
+            href: '/entreprise',
         },
         {
             title: entreprise.denomination,
@@ -121,7 +117,7 @@ export default function IndexSimple({ entreprise }: Props) {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                                 <Link
-                                    href="/entreprises"
+                                    href="/entreprise"
                                     className="group flex items-center space-x-2 rounded-lg bg-white/60 dark:bg-neutral-800/60 px-3 py-2 text-slate-600 dark:text-slate-300 transition-all duration-200 hover:bg-white/80 dark:hover:bg-neutral-700/80 hover:text-indigo-600 dark:hover:text-indigo-400 hover:shadow-sm"
                                 >
                                     <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
@@ -133,7 +129,7 @@ export default function IndexSimple({ entreprise }: Props) {
                 </div>
 
                 <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                    <div >
                         <div className="space-y-6 lg:col-span-2">
                             <div className="relative overflow-hidden rounded-2xl border border-white/20 dark:border-neutral-700/60 bg-white/90 dark:bg-neutral-900/90 p-8 shadow-xl backdrop-blur-sm">
                                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 dark:from-indigo-400/10 dark:to-purple-400/10"></div>
@@ -339,45 +335,6 @@ export default function IndexSimple({ entreprise }: Props) {
                             </div>
                         </div>
 
-                        <div className="space-y-6">
-                            <div className="overflow-hidden rounded-2xl border border-white/20 dark:border-neutral-700/60 bg-white/90 dark:bg-neutral-900/90 shadow-xl backdrop-blur-sm">
-                                <div className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 px-6 py-4">
-                                    <h3 className="flex items-center space-x-2 text-lg font-semibold text-slate-800 dark:text-slate-100">
-                                        <CirclePlus size={18} className="text-indigo-600 dark:text-indigo-400" />
-                                        <span>Actions rapides</span>
-                                    </h3>
-                                </div>
-                                <div className="space-y-4 p-6">
-                                    <Link
-                                        href={`/entreprises/${entreprise.id}/action`}
-                                        className="group flex w-full transform items-center justify-center space-x-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 px-4 py-3 text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:from-emerald-600 hover:to-green-700 dark:hover:from-emerald-700 dark:hover:to-green-800 hover:shadow-xl"
-                                    >
-                                        <CirclePlus size={18} className="transition-transform group-hover:scale-110" />
-                                        <span className="font-medium">Nouvelle Action</span>
-                                    </Link>
-                                    <Link
-                                        href={`https://www.google.com/maps/search/${encodeURIComponent(entreprise.adresse)}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="group flex w-full transform items-center justify-center space-x-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 dark:from-purple-600 dark:to-pink-700 px-4 py-3 text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:from-purple-600 hover:to-pink-700 dark:hover:from-purple-700 dark:hover:to-pink-800 hover:shadow-xl"
-                                    >
-                                        <MapPin size={18} className="transition-transform group-hover:scale-110" />
-                                        <span className="font-medium">Localiser</span>
-                                        <ExternalLink size={14} />
-                                    </Link>
-
-                                    {entreprise.hasRdv && entreprise.hasAction && (
-                                        <Link
-                                            href={`/entreprises/${entreprise.id}/liste-actions`}
-                                            className="group flex w-full transform items-center justify-center space-x-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-600 dark:from-yellow-600 dark:to-orange-700 px-4 py-3 text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:from-yellow-600 hover:to-orange-700 dark:hover:from-yellow-700 dark:hover:to-orange-800 hover:shadow-xl"
-                                        >
-                                            <Calendar size={18} className="transition-transform group-hover:scale-110" />
-                                            <span className="font-medium">Liste des Actions</span>
-                                        </Link>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

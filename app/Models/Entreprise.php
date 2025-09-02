@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $tel
  * @property string $date_rdv
  * @property string $adresse
+     * @property string $assistante_id
 
 
  */
@@ -34,6 +35,7 @@ class Entreprise extends Model
         'chiffre_affaire',
         'tel',
         'diregeants',
+        'assistante_id',
 
     ];
 
@@ -47,8 +49,9 @@ class Entreprise extends Model
     {
         return $this->hasMany(Action::class);
     }
-        public function attcom()
-    {
-        return $this->hasOne(Attcom::class);
-    }
+public function attcom()
+{
+    return $this->hasOne(Attcom::class);
+}
+
 }

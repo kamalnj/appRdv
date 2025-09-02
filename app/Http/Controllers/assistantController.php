@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Imports\UsersImport;
 use App\Models\Action;
+use App\Models\Attcom;
 use App\Models\Entreprise;
 use App\Models\Rdv;
 use App\Models\User;
@@ -165,9 +166,14 @@ class assistantController extends Controller
 
     // View pour tous les entreprises
     public function index(Request $request)
-    {
+    {   
+        $user = Auth::user(); 
         $filters = array_filter($request->input('filters', []));
         $query = Entreprise::with('attcom');
+
+        if ($user->role === 'assistant') {
+        $query->where('assistante_id', $user->id);
+        }
 
         if (!empty($filters)) {
             $query->whereHas('attcom', function ($q) use ($filters) {
@@ -191,7 +197,12 @@ class assistantController extends Controller
 
     // View pour details de chaque entreprise
     public function indexSimple(Entreprise $entreprise)
-    {
+    {   
+            $user = Auth::user();
+
+        if ($user->role === 'assistant' && $entreprise->assistante_id !== $user->id) {
+        abort(403, 'Unauthorized access.');
+         }
         $hasRdv = $entreprise->rdvs()->exists();
         $hasAction = $entreprise->actions()->exists();
 
@@ -206,6 +217,12 @@ class assistantController extends Controller
     // View pour les listes des actions et rdvs de chaque entreprise
     public function indexActions(Entreprise $entreprise)
     {
+            $user = Auth::user();
+
+    // 🔒 Security check
+    if ($user->role === 'assistant' && $entreprise->assistante_id !== $user->id) {
+        abort(403, 'Unauthorized access.');
+    }
         return Inertia::render('Assistante/ListeAction', [
             'entreprise' => $entreprise->only(['id', 'denomination']),
             'actions' => $entreprise->actions()->with('rdv.commercant')->get(),
@@ -216,14 +233,20 @@ class assistantController extends Controller
     // View pour updater Rdv et Action
     public function edit($entrepriseId, Action $action)
     {
+            $user = Auth::user();
+
         $entreprise = Entreprise::findOrFail($entrepriseId);
+          if ($user->role === 'assistant' && $entreprise->assistante_id !== $user->id) {
+        abort(403, 'Unauthorized access.');
+    }
+
         $rdv = $action->rdv;
         $commercants = User::where('role', 'commerçant')->get(['id', 'name']);
 
         return Inertia::render('Assistante/EditAction', [
             'entreprise' => $entreprise->only(['id', 'denomination']),
             'action' => $action->only(['id', 'feedback', 'next_step', 'besoin_client', 'commentaire']),
-            'rdv' => $rdv ? $rdv->only(['date_rdv', 'representant', 'email', 'localisation', 'commercant_id']) : [],
+            'rdv' => $rdv ? $rdv->only(['date_rdv', 'representant','fonction', 'email','details','telephone', 'localisation', 'commercant_id']) : [],
             'commercants' => $commercants,
         ]);
     }
@@ -231,7 +254,13 @@ class assistantController extends Controller
     //View pour creation de Rdv et Action
     public function create($entrepriseId)
     {
+            $user = Auth::user();
+
         $entreprise = Entreprise::findOrFail($entrepriseId);
+            if ($user->role === 'assistant' && $entreprise->assistante_id !== $user->id) {
+        abort(403, 'Unauthorized access.');
+    }
+
 
         $rdvsPris = Rdv::whereHas('commercant', function ($query) {
             $query->where('role', 'commerçant');
@@ -252,108 +281,132 @@ class assistantController extends Controller
     }
 
     //Logic pour inserer Action et Rdv 
-    public function store(Request $request, $entrepriseId)
-    {
-        $entreprise = Entreprise::findOrFail($entrepriseId);
+  public function store(Request $request, $entrepriseId) 
+{
+    $entreprise = Entreprise::findOrFail($entrepriseId);
 
-        $validated = $request->validate([
-            'commercant_id' => 'required|exists:users,id',
-            'date_rdv' => 'required|date|after:now',
-            'representant' => 'required|string|max:1000',
-            'email' => 'required|email|max:255',
-            'fonction' => 'nullable|string|max:100',
-            'telephone' => 'nullable|string|max:20',
-            'localisation' => 'required|string|max:255',
-            'feedback' => 'required|string|max:1000',
-            'next_step' => 'required|string|max:255',
-            'besoin_client' => 'required|string|max:1000',
-            'commentaire_action' => 'nullable|string|max:1000',
+    $validated = $request->validate([
+        'commercant_id' => 'required|exists:users,id',
+        'date_rdv' => 'required|date|after:now',
+        'representant' => 'required|string|max:1000',
+        'email' => 'required|email|max:255',
+        'fonction' => 'nullable|string|max:100',
+        'details'=>'nullable|string|max:1000',
+        'telephone' => 'nullable|string|max:20',
+        'localisation' => 'required|string|max:255',
+        'feedback' => 'required|string|max:1000',
+        'next_step' => 'required|string|max:255',
+        'besoin_client' => 'required|string|max:1000',
+        'commentaire_action' => 'nullable|string|max:1000',
+    ]);
+
+    $validated['entreprise_id'] = $entreprise->id;
+
+    $assistant = User::where('id', $request->user()->id)->where('role', 'assistant')->first();
+    $commercant = User::where('id', $validated['commercant_id'])->where('role', 'commerçant')->first();
+
+    if (!$assistant) {
+        return response()->json(['message' => 'L\'assistant sélectionné n\'est pas valide.'], 422);
+    }
+    if (!$commercant) {
+        return response()->json(['message' => 'Le commerçant sélectionné n\'est pas valide.'], 422);
+    }
+
+    $dateDebut = Carbon::parse($request->input('date_rdv'));
+    $dateFin = $dateDebut->copy()->addHours(4);
+
+    $existe = Rdv::where('commercant_id', $request->input('commercant_id'))
+        ->whereIn('status', ['scheduled'])
+        ->where(function ($query) use ($dateDebut, $dateFin) {
+            $query->whereRaw('date_rdv < ?', [$dateFin])
+                  ->whereRaw('DATE_ADD(date_rdv, INTERVAL 4 HOUR) > ?', [$dateDebut]);
+        })
+        ->exists();
+
+    if ($existe) {
+        return back()->withErrors([
+            'date_rdv' => 'Ce créneau chevauche un autre RDV (durée 4h). Veuillez choisir une autre date.',
+        ]);
+    }
+
+    DB::beginTransaction();
+
+    try {
+        // Créer l’action
+        $action = Action::create([
+            'assistante_id' => $request->user()->id,
+            'feedback' => $validated['feedback'],
+            'next_step' => $validated['next_step'],
+            'besoin_client' => $validated['besoin_client'],
+            'commentaire' => $validated['commentaire_action'] ?? null,
+            'entreprise_id' => $validated['entreprise_id'],
         ]);
 
+        // Créer le RDV
+        $rdv = Rdv::create([
+            'assistante_id' => $request->user()->id,
+            'commercant_id' => $validated['commercant_id'],
+            'date_rdv' => $validated['date_rdv'],
+            'representant' => $validated['representant'],
+            'email' => $validated['email'],
+            'fonction' => $validated['fonction'],
+            'details'=>$validated['details'],
+            'telephone' => $validated['telephone'],
+            'localisation' => $validated['localisation'],
+            'entreprise_id' => $validated['entreprise_id'],
+            'action_id' => $action->id,
+        ]);
 
-        $validated['entreprise_id'] = $entreprise->id;
+        $docFields = ['loi', 'dossier_technique', 'leve_fond', 'iso', 'test', 'test_'];
+        $attcom = $entreprise->attcom; 
 
+        if ($attcom) {
+            // Mettre à jour les documents
+            foreach ($docFields as $f) {
+                if ($request->has($f)) {
+                    $attcom->{$f} = $request->boolean($f);
+                }
+            }
+            $attcom->save();
+        
+        if ($rdv->status === 'scheduled') {
+    $rdv->status = 'completed';
+    $rdv->save();
+}}
 
+        DB::commit();
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('Erreur dans la transaction', ['exception' => $e->getMessage()]);
+        return back()->withErrors([
+            'general' => 'Erreur lors de la création du RDV et de l\'Action.'
+        ]);
+    }
 
-        $assistant = User::where('id', $request->user()->id)->where('role', 'assistant')->first();
-        $commercant = User::where('id', $validated['commercant_id'])->where('role', 'commerçant')->first();
-        if (!$assistant) {
-            return response()->json(['message' => 'L\'assistant sélectionné n\'est pas valide.'], 422);
-        }
-        if (!$commercant) {
-            return response()->json(['message' => 'Le commerçant sélectionné n\'est pas valide.'], 422);
-        }
+    // Logs d’activité
+    activity('rdv')
+        ->causedBy(Auth::user())
+        ->performedOn($rdv)
+        ->withProperties([
+            'entreprise' => $entreprise->denomination,
+            'assistante' => $assistant->name,
+        ])
+        ->log("RDV créé par {$assistant->name} pour l’entreprise {$entreprise->denomination}");
 
-        $dateDebut = Carbon::parse($request->input('date_rdv'));
-        $dateFin = $dateDebut->copy()->addHours(4);
-
-        $existe = rdv::where('commercant_id', $request->input('commercant_id'))
-            ->whereIn('status', ['scheduled'])
-            ->where(function ($query) use ($dateDebut, $dateFin) {
-                $query->whereRaw('date_rdv < ?', [$dateFin])
-                    ->whereRaw('DATE_ADD(date_rdv, INTERVAL 4 HOUR) > ?', [$dateDebut]);
-            })
-            ->exists();
-
-        if ($existe) {
-            return back()->withErrors([
-                'date_rdv' => 'Ce créneau chevauche un autre RDV (durée 4h). Veuillez choisir une autre date.',
-            ]);
-        }
-        DB::beginTransaction();
-
-        try {
-            $action = Action::create([
-                'assistante_id' => $request->user()->id,
-                'feedback' => $validated['feedback'],
-                'next_step' => $validated['next_step'],
-                'besoin_client' => $validated['besoin_client'],
-                'commentaire' => $validated['commentaire_action'] ?? null,
-                'entreprise_id' => $validated['entreprise_id'],
-            ]);
-
-            $rdv = Rdv::create([
-                'assistante_id' => $request->user()->id,
-                'commercant_id' => $validated['commercant_id'],
-                'date_rdv' => $validated['date_rdv'],
-                'representant' => $validated['representant'],
-                'email' => $validated['email'],
-                'fonction' => $validated['fonction'],
-                'telephone' => $validated['telephone'],
-                'localisation' => $validated['localisation'],
-                'entreprise_id' => $validated['entreprise_id'],
-                'action_id' => $action->id,
-            ]);
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('Erreur dans la transaction', ['exception' => $e->getMessage()]);
-            return response()->json(['message' => 'Erreur lors de la création du RDV et de l\'Action.'], 500);
-        }
-
+    if ($commercant) {
         activity('rdv')
             ->causedBy(Auth::user())
             ->performedOn($rdv)
             ->withProperties([
                 'entreprise' => $entreprise->denomination,
-                'assistante' => $assistant->name,
+                'commercant' => $commercant->name,
             ])
-            ->log("RDV créé par {$assistant->name} pour l’entreprise {$entreprise->denomination}");
-
-        if ($commercant) {
-            activity('rdv')
-                ->causedBy(Auth::user())
-                ->performedOn($rdv)
-                ->withProperties([
-                    'entreprise' => $entreprise->denomination,
-                    'commercant' => $commercant->name,
-                ])
-                ->log("RDV avec {$entreprise->denomination} assigné à {$commercant->name}");
-        }
-
-        return back()->with('success', true);
+            ->log("RDV avec {$entreprise->denomination} assigné à {$commercant->name}");
     }
+
+    return back()->with('success', true);
+}
+
 
     // Update Action et Rdv
     public function update(Request $request, $entrepriseId, Action $action)
@@ -365,6 +418,10 @@ class assistantController extends Controller
             'date_rdv' => 'required|date|after:now',
             'representant' => 'required|string|max:1000',
             'email' => 'required|email|max:255',
+                   'fonction' => 'nullable|string|max:100',
+                'details'=>'nullable|string|max:1000',
+        'telephone' => 'nullable|string|max:20',
+            
             'localisation' => 'required|string|max:255',
 
             'feedback' => 'required|string|max:1000',
@@ -419,6 +476,9 @@ class assistantController extends Controller
             'date_rdv' => $validated['date_rdv'],
             'representant' => $validated['representant'],
             'email' => $validated['email'],
+                 'fonction' => $validated['fonction'],
+            'details'=>$validated['details'],
+            'telephone' => $validated['telephone'],
             'localisation' => $validated['localisation'],
             'entreprise_id' => $entreprise->id,
             'action_id' => $action->id,

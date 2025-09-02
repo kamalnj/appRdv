@@ -21,8 +21,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('/users-import', [adminController::class, 'import'])->name('users.import');
     Route::get('/entreprise/{entreprise}/edit', [adminController::class, 'updatepage'])->name('admin.edit');
     Route::put('/entreprise/{entreprise}', [adminController::class, 'update'])->name('admin.update');
-    Route::delete('/entreprise/{entreprise}', [adminController::class, 'delete'])->name('admin.destroy');
-    Route::get('/entreprises/{entreprise}', [adminController::class, 'show'])->name('entreprises.index');
+    Route::delete('/entreprise/{entreprise}/delete', [adminController::class, 'delete'])->name('admin.destroy');
+    Route::get('/entreprise/{entreprise}/show', [adminController::class, 'show'])->name('index');
 ;
 });
 //assistant routes

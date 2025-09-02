@@ -22,6 +22,7 @@ interface CombinedData {
     besoin_client: string;
     commentaire_action: string;
     fonction: string;
+    details:string;
     telephone: string;
 
 }
@@ -54,6 +55,7 @@ export default function Action({ entreprise, commercants, rdvsPris }: Props) {
         besoin_client: '',
         commentaire_action: '',
         fonction:'',
+        details:'',
         telephone:'',
     });
 

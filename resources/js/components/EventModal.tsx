@@ -25,6 +25,10 @@ const EventModal = memo(({ isOpen, onClose, event, qualifierConfirm, onQualifier
     const isQualifie = qualifierConfirm === event.extendedProps.idEntreprise;
     const hasAttcom = event.extendedProps.hasAttcom;
     const { extendedProps } = event;
+    const isNotQualified = extendedProps.isqualified === false 
+                               || (typeof extendedProps.isqualified === 'number' && extendedProps.isqualified === 0)
+                               || (typeof extendedProps.isqualified === 'string' && extendedProps.isqualified === '0');
+
 
     const formatPhoneNumbers = (phones: string[]) => {
         return phones
@@ -222,6 +226,11 @@ const EventModal = memo(({ isOpen, onClose, event, qualifierConfirm, onQualifier
                                             <p className="text-sm font-semibold text-gray-900">{extendedProps.besoin_client}</p>
                                         </InfoSection>
                                     )}
+                                           {extendedProps.details && (
+                                        <InfoSection icon={MessageCircle} title="Détails" iconColor="text-purple-600" iconBg="bg-purple-100">
+                                            <p className="text-sm font-semibold text-gray-900">{extendedProps.details}</p>
+                                        </InfoSection>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -230,7 +239,7 @@ const EventModal = memo(({ isOpen, onClose, event, qualifierConfirm, onQualifier
                         <div className="border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-neutral-700 dark:bg-neutral-800">
                             <div className="flex items-center justify-between">
                                 {/* Cas 1 : isqualified = false (Rendez-vous annulé) */}
-                                {!extendedProps.isqualified && extendedProps.isqualified !== null ? (
+                                    {isNotQualified ? (
                                     <div className="flex w-full items-center justify-center">
                                         <div className="flex items-center space-x-2 text-red-600">
                                             <XCircle size={20} />

@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 /**    
  *@property int $id
+ *@property int $entreprise_id
+
  */
 
 class Attcom extends Model

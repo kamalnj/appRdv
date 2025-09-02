@@ -4,7 +4,6 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Briefcase, Search,Eye, FileText, AlertCircle, X, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from '@inertiajs/react';
-import SuccessModal from '@/components/ui/SuccessModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -70,11 +69,8 @@ const docFields = [
 ];
 
 export default function Index({ auth, entreprises, filters = {} }: Props) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [search, setSearch] = useState('');
     const [tribunalFilter, setTribunalFilter] = useState('');
-    // const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [showFilters, setShowFilters] = useState(false);
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
     const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: boolean }>(filters || {});
 
@@ -94,37 +90,10 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
         return matchSearch && matchTribunal;
     });
 
-    const { post, reset, setData, processing, errors } = useForm({
-        file: null as File | null,
-    });
-
-    // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     const file = e.target.files?.[0];
-    //     setSelectedFile(file || null);
-    //     setData('file', file || null);
-    // };
-
-    // const handleImport = () => {
-    //     if (!selectedFile) {
-    //         alert("Veuillez sélectionner un fichier.");
-    //         return;
-    //     }
-
-    //     post(`/users-import`, {
-    //         forceFormData: true,
-    //         onSuccess: () => {
-    //             reset();
-    //             setSelectedFile(null);
-    //             setIsModalOpen(true);
-    //         },
-    //     });
-    // };
-
     const clearFilters = () => {
         setSearch('');
         setTribunalFilter('');
         setSelectedFilters({});
-        // Rediriger pour nettoyer l'URL
         router.visit(route('entreprises.index'), { 
             method: 'get',
             preserveState: false 
@@ -157,45 +126,7 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
             <div className="min-h-screen bg-gray-50 dark:border-neutral-700/60 dark:bg-neutral-900/70">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
                     <div className="space-y-6">
-                        
-                        {/* Section Import
-                        <div className="bg-white rounded-xl shadow-sm border p-6 dark:border-neutral-700/60 dark:bg-neutral-900/70 dark:text-white">
-                            <div className="flex items-center justify-between mb-4 ">
-                                <h2 className="text-lg font-semibold dark:text-white text-gray-900 flex items-center gap-2">
-                                    <Upload className="dark:text-white h-5 w-5 text-indigo-500" />
-                                    Importer des données
-                                </h2>
-                                <span className="text-sm dark:text-white text-gray-500">Formats acceptés: CSV, XLSX, XLS</span>
-                            </div>
-                            
-                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-indigo-300 transition-colors">
-                                <div className="flex flex-col sm:flex-row items-center gap-4">
-                                    <div className="flex-1">
-                                        <input
-                                            type="file"
-                                            accept=".csv,.xlsx,.xls"
-                                            onChange={handleFileChange}
-                                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 transition-colors"
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={handleImport}
-                                        disabled={!selectedFile || processing}
-                                        className="inline-flex items-center px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        {processing ? 'Importation...' : 'Importer'}
-                                    </button>
-                                </div>
-                                
-                                {selectedFile && (
-                                    <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
-                                        <FileText className="h-4 w-4" />
-                                        <span>Fichier sélectionné: {selectedFile.name}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div> */}
-
+    
                         {/* Section Recherche et Filtres */}
                         <div className="bg-white rounded-xl shadow-sm border p-6 dark:border-neutral-700/60 dark:bg-neutral-900/70">
                             <div className="space-y-4">
@@ -400,7 +331,7 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                                                 </div>
                                                                 {entreprise.attcom && (
                                                                     <div className="mt-1 flex flex-wrap gap-1">
-                                                                        {docFields.map(({ key }) => (
+                                                                        {docFields.map(({ key , label }) => (
                                                                             <span
                                                                                 key={key}
                                                                                 className={`inline-flex items-center px-1.5 py-0.5 text-xs rounded ${
@@ -410,6 +341,7 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                                                                 }`}
                                                                                 title={docFields.find(f => f.key === key)?.label}
                                                                             >
+                                                                                {label}
                                                                             </span>
                                                                         ))}
                                                                     </div>
@@ -472,14 +404,6 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                     Affichage de {entreprises.from} à {entreprises.to} sur {entreprises.total} résultats
                 </div>
             </div>
-
-            <SuccessModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                message="Fichier Importé Avec Succès !"
-                buttonText="Continuer"
-                onContinue={() => router.visit('/entreprises')}
-            />
         </AppLayout>
     );
 }

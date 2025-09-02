@@ -98,7 +98,7 @@ class adminController extends Controller
             'object_social' => 'nullable|string|max:255',
             'adresse' => 'nullable|string|max:255',
             'ice' => 'nullable|string|max:255',
-            'bilan_date' => 'nullable|date',
+            'bilan_date' => 'nullable|numeric',
             'chiffre_affaire' => 'nullable|numeric',
             'tel' => 'nullable|array',
             'diregeants' => 'nullable|array',
@@ -110,7 +110,7 @@ class adminController extends Controller
     }
     public function show($id){
         $entreprise = Entreprise::findOrFail($id);
-        return Inertia::render('EntrepriseShow', [
+        return Inertia::render('Details', [
             'entreprise' => $entreprise,
         ]);
     }
@@ -131,16 +131,13 @@ class adminController extends Controller
         try {
             Excel::import(new UsersImport, $request->file('file'));
         } catch (ValidationException $e) {
-            // Let Laravel/Inertia handle validation exceptions (do NOT return JSON)
             throw $e;
         } catch (\Throwable $e) {
-            // Convert other exceptions into a validation-style response so Inertia.onError receives it
             throw ValidationException::withMessages([
                 'file' => [$e->getMessage() ?: 'Erreur inconnue lors de l\'importation.']
             ]);
         }
 
-        // Success: Inertia will interpret the redirect; your front-end can use onSuccess
         return back()->with('success', true);
     }
 }

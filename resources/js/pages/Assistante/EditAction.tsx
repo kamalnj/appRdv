@@ -23,6 +23,9 @@ interface Props {
         date_rdv: string;
         representant: string;
         email: string;
+        fonction: string;
+        details:string;
+        telephone: string;
         localisation: string;
         commercant_id: number;
     };
@@ -42,6 +45,9 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
         date_rdv: rdv.date_rdv || '',
         representant: rdv.representant || '',
         email: rdv.email || '',
+        fonction: rdv.fonction || '',
+        details:rdv.details || '',
+        telephone: rdv.telephone || '',
         localisation: rdv.localisation || '',
         commercant_id: rdv.commercant_id || '',
     });
@@ -194,6 +200,31 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
                                         onChange={(value) => setData('representant', value)}
                                         error={errors.representant}
                                         placeholder="Nom du représentant"
+                                        icon={UserIcon}
+                                    />
+                                          <InputField
+                                        label="Fonction"
+                                        value={data.fonction}
+                                        onChange={(value) => setData('fonction', value)}
+                                        error={errors.fonction}
+                                        placeholder="Fonction du représentant"
+                                        icon={UserIcon}
+                                    />
+                                          <InputField
+                                        label="Détails"
+                                        value={data.details}
+                                        onChange={(value) => setData('details', value)}
+                                        error={errors.details}
+                                        placeholder="Détails"
+                                        icon={UserIcon}
+                                    />
+                                            <InputField
+                                        label="Télèphone"
+                                        value={data.telephone}
+                                        onChange={(value) => setData('telephone', value)}
+                                        error={errors.telephone}
+                                        type="tel"
+                                        placeholder="Télèphone du représentant"
                                         icon={UserIcon}
                                     />
 

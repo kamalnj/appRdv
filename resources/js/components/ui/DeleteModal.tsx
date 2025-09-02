@@ -1,6 +1,6 @@
-import { CheckCircle } from 'lucide-react';
+import { CircleX } from 'lucide-react';
 
-interface SuccessModalProps {
+interface DeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
   message: string;
@@ -8,24 +8,22 @@ interface SuccessModalProps {
   onContinue?: () => void;
 }
 
-export default function SuccessModal({
+export default function DeleteModal({
   isOpen,
   onClose,
-  message,
   buttonText,
   onContinue,
-}: SuccessModalProps) {
+}: DeleteModalProps) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-xl bg-white dark:bg-gray-800 p-6 shadow-xl border dark:border-gray-700 text-center">
         <div className="flex justify-center mb-4">
-          <CheckCircle className="h-12 w-12 text-green-500" />
+          <CircleX className="h-12 w-12 text-red-500" />
         </div>
 
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Succès</h2>
-        <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">{message}</p>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Vous êtes sûr</h2>
 
         <button
           onClick={() => {

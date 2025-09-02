@@ -24,6 +24,9 @@ interface Rdv {
     id: number;
     date_rdv: string;
     representant?: string;
+    fonction?: string;
+    details?:string;
+    telephone?: string;
     email?: string;
     localisation?: string;
     commercant_id?: string;
@@ -249,6 +252,18 @@ export default function ListeAction({ entreprise, actions, rdvs }: Props) {
                                                                 <div>
                                                                     <span className="font-medium text-slate-700">Représentant:</span>
                                                                     <p className="text-slate-600">{action.rdv.representant}</p>
+                                                                </div>
+                                                                          <div>
+                                                                    <span className="font-medium text-slate-700">Fonction du Représentant:</span>
+                                                                    <p className="text-slate-600">{action.rdv.fonction}</p>
+                                                                </div>
+                                                                          <div>
+                                                                    <span className="font-medium text-slate-700">Détails:</span>
+                                                                    <p className="text-slate-600">{action.rdv.details}</p>
+                                                                </div>
+                                                                          <div>
+                                                                    <span className="font-medium text-slate-700">Téléphone:</span>
+                                                                    <p className="text-slate-600">{action.rdv.telephone}</p>
                                                                 </div>
                                                                 <div>
                                                                     <span className="font-medium text-slate-700">Email:</span>

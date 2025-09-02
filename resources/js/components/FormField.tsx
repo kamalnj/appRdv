@@ -9,7 +9,7 @@ interface Option {
 interface FormFieldProps {
   label: string;
   name: string;
-  type: 'text' | 'email' | 'datetime-local' | 'select' | 'textarea'| 'tel';
+  type: 'text' | 'email' | 'datetime-local'|'number' |'month'| 'year'| 'select' | 'textarea'| 'tel';
   value: string;
   onChange: (value: string) => void;
   error?: string;
@@ -20,8 +20,8 @@ interface FormFieldProps {
   min?: string;
   max?: string;
   disabled?: boolean;
-  rows?: number; // for textarea
-  step?: string; // for datetime-local
+  rows?: number; 
+  step?: string; 
 }
 
 export default function FormField({

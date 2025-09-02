@@ -32,7 +32,7 @@ export default function FormSection({
         </div>
       </div>
       <div className="p-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div className="space-y-8">
           {children}
         </div>
       </div>

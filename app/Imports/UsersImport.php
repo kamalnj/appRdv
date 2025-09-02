@@ -3,13 +3,14 @@
 namespace App\Imports;
 
 use App\Models\Entreprise;
+use App\Models\User;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 
 class UsersImport implements ToModel, WithStartRow
 {
-    private array $seenRC = [];
+    private array $seenICE = [];
 
     public function startRow(): int
     {
@@ -31,26 +32,26 @@ class UsersImport implements ToModel, WithStartRow
 
         $denomination = isset($row[0]) ? (string)$row[0] : '';
         $rc = isset($row[1]) ? (string)$row[1] : '';
+        $ice = isset($row[6]) ? (string)$row[6] : '';
+
 
         // required check
-        if ($denomination === '' || $rc === '') {
-            throw ValidationException::withMessages([
-                'file' => "Import bloqué : 'Dénomination' ou 'RC' manquant pour une ligne."
-            ]);
+        if ($denomination === '' || $ice === '') {
+            return null; // ignore la ligne
         }
 
-        // duplicate in same file
-        if (in_array($rc, $this->seenRC, true)) {
+        // duplicate in same file (ICE)
+        if (in_array($ice, $this->seenICE, true)) {
             throw ValidationException::withMessages([
-                'file' => "Import bloqué : RC dupliqué dans le fichier — '{$rc}'."
+                'file' => "Import bloqué : ICE dupliqué dans le fichier — '{$ice}'."
             ]);
         }
-        $this->seenRC[] = $rc;
+        $this->seenICE[] = $ice;
 
         // exists in DB
-        if (Entreprise::where('rc', $rc)->exists()) {
+        if (Entreprise::where('ice', $ice)->exists()) {
             throw ValidationException::withMessages([
-                'file' => "Import bloqué : RC '{$rc}' existe déjà dans la base."
+                'file' => "Import bloqué : ICE '{$ice}' existe déjà dans la base."
             ]);
         }
 
@@ -116,6 +117,11 @@ class UsersImport implements ToModel, WithStartRow
             }
         }
 
+        // 1. Get all assistants once (only their IDs)
+            $assistants = User::where('role', 'assistant')->pluck('id')->toArray();
+
+        // 2. Decide which assistant to use
+            $assistantId = $assistants[Entreprise::count() % count($assistants)];
 
         // return model (keep 'diregeants' key as requested)
         return new Entreprise([
@@ -129,7 +135,8 @@ class UsersImport implements ToModel, WithStartRow
             'bilan_date' => isset($row[7]) ? (string)$row[7] : null,
             'chiffre_affaire' => isset($row[8]) ? (string)$row[8] : null,
             'tel' => $tels,                // array
-            'diregeants' => $dirigeants,   // array (kept typo)
+            'diregeants' => $dirigeants,   // array
+            'assistante_id'   => $assistantId,
         ]);
     }
 }

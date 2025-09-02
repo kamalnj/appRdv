@@ -68,7 +68,7 @@ class commercantController extends Controller
         $totalrdvs = Rdv::where('commercant_id', $user->id)
             ->whereBetween('date_rdv', [
                 Carbon::now()->startOfMonth(),
-                Carbon::now()->endOfMonth()    
+                Carbon::now()->endOfMonth()
             ])
             ->count();
 
@@ -136,7 +136,7 @@ class commercantController extends Controller
             ->where('commercant_id', $user->id)
             ->get()
             ->map(function ($rdv) {
-                $attcom = $rdv->entreprise->attcom->first();
+        $attcom = $rdv->entreprise?->attcom;
 
                 return [
                     'title' => 'RDV avec ' . ($rdv->entreprise->denomination ?? ''),
@@ -144,19 +144,20 @@ class commercantController extends Controller
                     'end' => Carbon::parse($rdv->date_rdv)->addHours(4),
                     'localisation' => $rdv->localisation,
                     'idRdv' => $rdv->id,
-                    'isqualified'=> $rdv->isqualified,
+                    'isqualified' => $rdv->isqualified,
                     'idEntreprise' => $rdv->entreprise_id,
                     'representer_par' => $rdv->representant,
                     'email' => $rdv->email,
                     'fonction' => $rdv->fonction,
-                    'telephoneR'=> $rdv->telephone,
+                    'telephoneR' => $rdv->telephone,
+                    'details' => $rdv->details,
                     'telephone' => $rdv->entreprise->tel ?? null,
                     'commentaire' => $rdv->action->commentaire ?? null,
                     'besoin_client' => $rdv->action->besoin_client ?? null,
                     'feedback' => $rdv->action->feedback ?? null,
                     'next_step' => $rdv->action->next_step ?? null,
-                    'hasAttcom' => $rdv->entreprise->attcom->isNotEmpty(),
-                    'idAttcom' => $attcom?->id,
+                        'hasAttcom' => $attcom !== null,
+                     'idAttcom' => $attcom?->id,
 
                 ];
             });
@@ -239,22 +240,37 @@ class commercantController extends Controller
             'attData' => $att,
         ]);
     }
-    public function update(Request $request, $id)
-    {
-        // Valide les données
-        $validated = $request->validate([
-            'loi' => 'required|boolean',
-            'dossier_technique' => 'required|boolean',
-            'leve_fond' => 'required|boolean',
-            'iso' => 'required|boolean',
-            'test' => 'required|boolean',
-            'test_' => 'required|boolean',
-        ]);
+public function update(Request $request, $id)
+{
+    // Valider les données
+    $validated = $request->validate([
+        'loi' => 'required|boolean',
+        'dossier_technique' => 'required|boolean',
+        'leve_fond' => 'required|boolean',
+        'iso' => 'required|boolean',
+        'test' => 'required|boolean',
+        'test_' => 'required|boolean',
+    ]);
 
-        $attcom = Attcom::findOrFail($id);
+    // Récupérer l'attcom
+    $attcom = Attcom::findOrFail($id);
 
-        $attcom->update($validated);
+    // Mettre à jour les champs
+    $attcom->update($validated);
 
-         return back()->with('success', true);
+    // Récupérer le RDV lié à l'attcom via l'entreprise
+    $rdv = Rdv::where('entreprise_id', $attcom->entreprise_id)
+              ->where('status', 'scheduled')
+              ->latest('date_rdv')
+              ->first();
+
+    // Passer le RDV en completed si c'est scheduled
+    if ($rdv) {
+        $rdv->status = 'completed';
+        $rdv->save();
     }
+
+    return back()->with('success', true);
+}
+
 }

@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $fonction
  * @property string $telephone
  * @property int $isqualified
+ * @property int $details
  * @property \App\Models\Entreprise $entreprise
  * @property \App\Models\Action $action
  */
@@ -26,7 +27,7 @@ class Rdv extends Model
 
     protected $fillable = [
         'entreprise_id', 'assistante_id', 'commercant_id',
-        'date_rdv', 'representant', 'email','fonction','telephone', 'localisation','status','action_id'
+        'date_rdv', 'representant', 'email','fonction','details','telephone', 'localisation','status','action_id'
     ];
 
     // Relations

@@ -96,9 +96,9 @@ export default function Final({ rdvs, entreprise }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-6">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 dark:bg-gray-800 dark:border-gray-700">
                     <div className="mb-6">
-                        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+                        <h1 className="text-2xl font-semibold text-gray-900 mb-2 dark:text-white">
                             Finalisation - {entreprise.denomination}
                         </h1>
                         <p className="text-gray-600">
@@ -110,21 +110,21 @@ export default function Final({ rdvs, entreprise }: Props) {
                         <div className="grid gap-4 md:grid-cols-2">
                             {checkboxItems.map((item) => (
                                 <div key={item.key} className="relative">
-                                    <label className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                    <label className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors dark:border-gray-700 dark:hover:bg-gray-700">
                                         <input
                                             type="checkbox"
                                             name={item.key}
                                             checked={data[item.key] as boolean}
                                             onChange={(e) => setData(item.key, e.target.checked)}
-                                            className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                            className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded "
                                         />
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-sm font-medium text-gray-900">
+                                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     {item.label}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-gray-500 mt-1">
+                                            <p className="text-sm text-gray-500 mt-1 dark:text-gray-400">
                                                 {item.description}
                                             </p>
                                         </div>

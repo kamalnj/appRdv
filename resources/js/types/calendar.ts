@@ -7,6 +7,7 @@ export interface EventExtendedProps {
     feedback?: string;
     fonction?: string;
     telephoneR?: string;
+    details?:string;
     next_step?: string;
     besoin_client?: string;
     idRdv: number;
