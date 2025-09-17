@@ -76,6 +76,8 @@ export default function DashboardA({ stats, commercants, latestNotif, leastUpcom
             color: 'from-emerald-500 to-emerald-600',
             bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
             textColor: 'text-emerald-600 dark:text-emerald-400',
+            link: '/rdvs', 
+
         },
         {
             title: 'Commerçants',
@@ -134,24 +136,35 @@ export default function DashboardA({ stats, commercants, latestNotif, leastUpcom
                     {/* Statistics Cards */}
                     <section>
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {statCards.map((stat, i) => (
-                                <div
-                                    key={i}
-                                    className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
-                                >
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${stat.bgColor} mb-4`}>
-                                                <stat.icon className={`h-6 w-6 ${stat.textColor}`} />
-                                            </div>
-                                            <h3 className="mb-1 text-2xl font-bold text-gray-900 dark:text-white">{stat.value.toLocaleString()}</h3>
-                                            <p className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-300">{stat.title}</p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">{stat.subtitle}</p>
-                                        </div>
-                                    </div>
-                                    <div className={`absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r ${stat.color} opacity-60`}></div>
-                                </div>
-                            ))}
+                            {statCards.map((stat, i) => {
+  const CardContent = (
+    <div
+      className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${stat.bgColor} mb-4`}>
+            <stat.icon className={`h-6 w-6 ${stat.textColor}`} />
+          </div>
+          <h3 className="mb-1 text-2xl font-bold text-gray-900 dark:text-white">{stat.value.toLocaleString()}</h3>
+          <p className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-300">{stat.title}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{stat.subtitle}</p>
+        </div>
+      </div>
+      <div className={`absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r ${stat.color} opacity-60`}></div>
+    </div>
+  );
+
+  // If stat.link exists, wrap in <Link>, otherwise just render the card
+  return stat.link ? (
+    <Link key={i} href={stat.link}>
+      {CardContent}
+    </Link>
+  ) : (
+    <div key={i}>{CardContent}</div>
+  );
+})}
+
                         </div>
                     </section>
 

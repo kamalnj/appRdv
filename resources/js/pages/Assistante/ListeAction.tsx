@@ -16,6 +16,7 @@ interface Action {
     next_step?: string;
     besoin_client?: string;
     commentaire?: string;
+    contact?: string;
     hasRdv?: boolean;
     rdv?: Rdv;
 }
@@ -215,6 +216,10 @@ export default function ListeAction({ entreprise, actions, rdvs }: Props) {
                                                         <div>
                                                             <span className="font-medium text-slate-700">Commentaire:</span>
                                                             <p className="mt-1 ml-2 text-slate-600">{action.commentaire || 'Non spécifié'}</p>
+                                                        </div>
+                                                            <div>
+                                                            <span className="font-medium text-slate-700">Contact:</span>
+                                                            <p className="mt-1 ml-2 text-slate-600">{action.contact || 'Non spécifié'}</p>
                                                         </div>
                                                     </div>
                                                 </div>

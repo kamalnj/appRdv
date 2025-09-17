@@ -29,7 +29,7 @@ interface RDVSectionProps {
     setData: (field: string, value: string) => void;
   };
   commercants: Array<{ id: number; name: string }>;
-  rdvsPris: Record<string, string[]>;
+rdvsPris: Record<string, { date_rdv: string; details: string }[]>;
 }
 
 export default function RDVSection({ form, commercants, rdvsPris }: RDVSectionProps) {
@@ -42,10 +42,10 @@ export default function RDVSection({ form, commercants, rdvsPris }: RDVSectionPr
     })), [commercants]
   );
 
-  // Liste des dates réservées pour le commerçant sélectionné
-  const rdvsIndisponibles = useMemo(() => {
-    return form.data.commercant_id ? rdvsPris[form.data.commercant_id] || [] : [];
-  }, [form.data.commercant_id, rdvsPris]);
+const rdvsIndisponibles = useMemo(() => {
+  if (!form.data.commercant_id) return [];
+  return rdvsPris[form.data.commercant_id] || [];
+}, [form.data.commercant_id, rdvsPris]);
 
   // Get selected commercant name
   const selectedCommercantName = useMemo(() => {
@@ -57,7 +57,7 @@ export default function RDVSection({ form, commercants, rdvsPris }: RDVSectionPr
   const normalizeDate = (dateStr: string) => dateStr.slice(0, 16);
 
   const handleDateChange = (value: string) => {
-    if (rdvsIndisponibles.some(d => normalizeDate(d) === normalizeDate(value))) {
+  if (rdvsIndisponibles.some(d => normalizeDate(d.date_rdv) === normalizeDate(value))) {
       // Show a more elegant error message
       setShowSuccessMessage(false);
       // You could implement a toast notification here instead of alert

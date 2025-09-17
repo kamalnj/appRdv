@@ -142,6 +142,9 @@ export default function Register() {
                                             <SelectItem value="commerçant" className="rounded-lg">
                                                 Commerçant
                                             </SelectItem>
+                                             <SelectItem value="consultant" className="rounded-lg">
+                                                Consultant
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <InputError message={errors.role} className="text-xs" />

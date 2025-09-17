@@ -14,7 +14,7 @@ class UsersImport implements ToModel, WithStartRow
 
     public function startRow(): int
     {
-        return 2; // skip header
+        return 1; // skip header
     }
 
     /**
@@ -117,11 +117,7 @@ class UsersImport implements ToModel, WithStartRow
             }
         }
 
-        // 1. Get all assistants once (only their IDs)
-            $assistants = User::where('role', 'assistant')->pluck('id')->toArray();
 
-        // 2. Decide which assistant to use
-            $assistantId = $assistants[Entreprise::count() % count($assistants)];
 
         // return model (keep 'diregeants' key as requested)
         return new Entreprise([
@@ -136,7 +132,8 @@ class UsersImport implements ToModel, WithStartRow
             'chiffre_affaire' => isset($row[8]) ? (string)$row[8] : null,
             'tel' => $tels,                // array
             'diregeants' => $dirigeants,   // array
-            'assistante_id'   => $assistantId,
+            'assistante_id'   =>  isset($row[11]) ? (string)$row[11] : null,
+
         ]);
     }
 }

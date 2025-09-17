@@ -10,12 +10,14 @@ interface ActionSectionProps {
             next_step: string;
             besoin_client: string;
             commentaire_action: string;
+            contact: string;
         };
         errors: {
             feedback?: string;
             next_step?: string;
             besoin_client?: string;
             commentaire_action?: string;
+            contact?: string;
         };
         setData: (field: string, value: string) => void;
     };
@@ -23,13 +25,35 @@ interface ActionSectionProps {
 
 export default function ActionSection({ form }: ActionSectionProps) {
     const feedbackOptions = [
-        { value: 'Très satisfait', label: 'Très satisfait' },
-        { value: 'Satisfait', label: 'Satisfait' },
+        { value: 'Pas encore contacté', label: 'Pas encore contacté' },
+        { value: 'Contacté, non atteint — à réessayer', label: 'Contacté, non atteint — à réessayer' },
+        { value: "Contacté, atteint, pas éligible / pas d'investissement", label: "Contacté, atteint, pas éligible / pas d'investissement" },
+        { value: 'Contacté, atteint, éligible et intéressé pour un RDV', label: 'Contacté, atteint, éligible et intéressé pour un RDV' },
+        {
+            value: 'Contacté, atteint, intéressé, mais réponses floues / en cours de décision',
+            label: 'Contacté, atteint, intéressé, mais réponses floues / en cours de décision',
+        },
+        { value: 'Contacté, atteint, intéressé, mais pour des projets futurs', label: 'Contacté, atteint, intéressé, mais pour des projets futurs' },
+        { value: 'Contacté, atteint, non intéressé ou déjà accompagné', label: 'Contacté, atteint, non intéressé ou déjà accompagné' },
+        { value: 'Contacté, souhaite être rappelé', label: 'Contacté, souhaite être rappelé' },
+        { value: 'AUTRES - à développer en commentaire', label: 'AUTRES - à développer en commentaire' },
     ];
 
     const nextStepOptions = [
-        { value: 'Appel téléphonique de suivi', label: 'Appel téléphonique de suivi' },
-        { value: 'Envoyer un email', label: 'Envoyer un email' },
+        { value: "Veuillez l'appeler", label: "Veuillez l'appeler" },
+        { value: "Cherchez comment l'atteindre", label: "Cherchez comment l'atteindre" },
+        {
+            value: 'À recontacter plus tard, mais envoyez une présentation de nos prestations',
+            label: 'À recontacter plus tard, mais envoyez une présentation de nos prestations',
+        },
+        {
+            value: 'Avez-vous fixé un RDV ? Si oui, quand ? Si non , pourquoi ? Essayez de fixer un rdv ASAP',
+            label: 'Avez-vous fixé un RDV ? Si oui, quand ? Si non , pourquoi ? Essayez de fixer un rdv ASAP',
+        },
+        { value: 'À rappeler dans 2–3 mois', label: 'À rappeler dans 2–3 mois' },
+        { value: 'Recontacter à la période du lancement du projet', label: 'Recontacter à la période du lancement du projet' },
+        { value: 'À rappeler dans une semaine', label: 'À rappeler dans une semaine' },
+        { value: 'Développer votre commentaire', label: 'Développer votre commentaire' },
     ];
 
     const besoinClientOptions = [
@@ -92,6 +116,17 @@ export default function ActionSection({ form }: ActionSectionProps) {
                     placeholder="Ajoutez vos commentaires sur l'action..."
                     rows={3}
                 />
+                <div className="mt-4">
+                    <FormField
+                        label="Contact"
+                        name="contact"
+                        type="textarea"
+                        value={form.data.contact}
+                        onChange={(value) => form.setData('contact', value)}
+                        error={form.errors.contact}
+                        rows={3}
+                    />
+                </div>
             </div>
         </FormSection>
     );

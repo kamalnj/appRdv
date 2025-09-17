@@ -24,7 +24,7 @@ class assistantController extends Controller
     {
         $stats = $this->getStats();
         $commercants = $this->getCommercantsWithCpmpletedRdvs();
-        $latestNotif = DB::table('activity_log')->get(['description'])->take(3);
+        $latestNotif = DB::table('activity_log')->latest()->take(3)->get(['description']);
         $leastUpcomingRdvs = $this->getCommercantsWithLeastUpcomingRdvs();
         $chartData = $this->getDatachart();
 
@@ -124,16 +124,44 @@ class assistantController extends Controller
                 ];
             });
     }
+      
+
+
+
+public function getrdvs()
+{
+    $user = Auth::user();
+
+    $rdvs = Rdv::with('entreprise', 'commercant')
+        ->whereHas('entreprise', function ($query) use ($user) {
+            if ($user->role === 'assistant') {
+                $query->where('assistante_id', $user->id);
+            }
+        })
+        ->whereBetween('date_rdv', [
+            Carbon::now()->startOfWeek(),
+            Carbon::now()->endOfWeek(),
+        ])
+        ->orderBy('date_rdv', 'asc')
+        ->paginate(10);
+
+    return Inertia::render('Assistante/Rdvs', [
+        'rdvs' => $rdvs,
+    ]);
+}
+
     // Fonction pour dashboard
     public function getStats()
     {
-        $totalEnterprises = Entreprise::count();
+                $assistant = Auth::user();
 
+        $totalEnterprises = Entreprise::where('assistante_id', $assistant->id)->count();
         // RDV planifiés cette semaine
         $rdvsThisWeek = Rdv::whereBetween('date_rdv', [
             Carbon::now()->startOfWeek(),
             Carbon::now()->endOfWeek()
-        ])->count();
+        ])->where('assistante_id', $assistant->id)
+        ->count();
 
         $totalCommercants = User::where('role', 'commerçant')->count();
 
@@ -169,7 +197,8 @@ class assistantController extends Controller
     {   
         $user = Auth::user(); 
         $filters = array_filter($request->input('filters', []));
-        $query = Entreprise::with('attcom');
+        $query = Entreprise::with(['attcom', 'rdvs'])->withCount('rdvs') 
+;
 
         if ($user->role === 'assistant') {
         $query->where('assistante_id', $user->id);
@@ -192,6 +221,32 @@ class assistantController extends Controller
             'filters' => $filters,
         ]);
     }
+public function entreprises_recontact(Request $request)
+{   
+    $user = Auth::user(); 
+
+    $query = Entreprise::whereHas('actions', function ($q) {
+        $q->whereDoesntHave('rdv')
+          ->whereRaw('actions.id = (
+                SELECT MAX(a.id) 
+                FROM actions a 
+                WHERE a.entreprise_id = actions.entreprise_id
+            )');
+    });
+
+    if ($user->role === 'assistant') {
+        $query->where('assistante_id', $user->id);
+    }
+
+    $entreprises = $query->paginate(200)->withQueryString();
+
+    return Inertia::render('Assistante/EntreprisesRec', [
+        'entreprises' => $entreprises,
+    ]);
+}
+
+
+    
 
 
 
@@ -245,7 +300,7 @@ class assistantController extends Controller
 
         return Inertia::render('Assistante/EditAction', [
             'entreprise' => $entreprise->only(['id', 'denomination']),
-            'action' => $action->only(['id', 'feedback', 'next_step', 'besoin_client', 'commentaire']),
+            'action' => $action->only(['id', 'feedback', 'next_step', 'besoin_client', 'commentaire','contact']),
             'rdv' => $rdv ? $rdv->only(['date_rdv', 'representant','fonction', 'email','details','telephone', 'localisation', 'commercant_id']) : [],
             'commercants' => $commercants,
         ]);
@@ -265,12 +320,17 @@ class assistantController extends Controller
         $rdvsPris = Rdv::whereHas('commercant', function ($query) {
             $query->where('role', 'commerçant');
         })
-            ->select('commercant_id', 'date_rdv')->where('status', 'scheduled')
+            ->select('commercant_id', 'date_rdv','details')->where('status', 'scheduled')
             ->get()
             ->groupBy('commercant_id')
             ->map(function ($rdvs) {
-                return $rdvs->pluck('date_rdv');
-            });
+             return $rdvs->map(function ($rdv) {
+            return [
+                'date_rdv' => $rdv->date_rdv,
+                'details' => $rdv->details,
+            ];
+        });
+    });
 
         return Inertia::render('Assistante/Action', [
             'entreprise' => $entreprise->only(['id', 'denomination']),
@@ -279,6 +339,42 @@ class assistantController extends Controller
             'rdvsPris' => $rdvsPris,
         ]);
     }
+public function store_actiononly(Request $request, $entrepriseId)
+{
+    // Vérifier que l'entreprise existe
+    $entreprise = Entreprise::findOrFail($entrepriseId);
+
+    // Validation des champs
+    $validated = $request->validate([
+        'feedback' => 'required|string|max:1000',
+        'next_step' => 'required|string|max:255',
+        'besoin_client' => 'required|string|max:1000',
+        'commentaire_action' => 'nullable|string|max:1000',
+        'contact' => 'nullable|string|max:255',
+    ]);
+
+    // Vérifier que l'utilisateur est un assistant
+    $assistant = $request->user();
+    if ($assistant->role !== 'assistant') {
+        return response()->json([
+            'message' => 'L\'utilisateur connecté n\'est pas un assistant.'
+        ], 422);
+    }
+
+    // Création de l'action
+    Action::create([
+        'assistante_id'   => $assistant->id,
+        'feedback'        => $validated['feedback'],
+        'next_step'       => $validated['next_step'],
+        'besoin_client'   => $validated['besoin_client'],
+        'commentaire'     => $validated['commentaire_action'] ?? null,
+        'contact'         => $validated['contact'] ?? null,
+        'entreprise_id'   => $entreprise->id,
+    ]);
+
+
+}
+
 
     //Logic pour inserer Action et Rdv 
   public function store(Request $request, $entrepriseId) 
@@ -298,6 +394,8 @@ class assistantController extends Controller
         'next_step' => 'required|string|max:255',
         'besoin_client' => 'required|string|max:1000',
         'commentaire_action' => 'nullable|string|max:1000',
+        'contact'=>'nullable|string|max:255',
+
     ]);
 
     $validated['entreprise_id'] = $entreprise->id;
@@ -339,6 +437,8 @@ class assistantController extends Controller
             'next_step' => $validated['next_step'],
             'besoin_client' => $validated['besoin_client'],
             'commentaire' => $validated['commentaire_action'] ?? null,
+        'contact'         => $validated['contact'] ?? null,
+
             'entreprise_id' => $validated['entreprise_id'],
         ]);
 
@@ -428,6 +528,8 @@ class assistantController extends Controller
             'next_step' => 'required|string|max:255',
             'besoin_client' => 'required|string|max:1000',
             'commentaire_action' => 'nullable|string|max:1000',
+                        'contact' => 'nullable|string|max:1000',
+
         ]);
 
 
@@ -468,6 +570,7 @@ class assistantController extends Controller
             'next_step' => $validated['next_step'],
             'besoin_client' => $validated['besoin_client'],
             'commentaire' => $validated['commentaire_action'] ?? null,
+        'contact'         => $validated['contact'] ?? null,
         ]);
 
         $action->rdv()->updateOrCreate([], [
@@ -500,3 +603,8 @@ class assistantController extends Controller
             ->with('success', 'Action et RDV supprimés avec succès !');
     }
 }
+
+
+// if ($user->role === 'assistant' && (int) $entreprise->assistante_id !== (int) $user->id) {
+//     abort(403, 'Unauthorized access.');
+// }

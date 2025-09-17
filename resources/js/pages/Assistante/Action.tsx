@@ -21,26 +21,27 @@ interface CombinedData {
     next_step: string;
     besoin_client: string;
     commentaire_action: string;
+    contact: string;
     fonction: string;
-    details:string;
+    details: string;
     telephone: string;
-
 }
 
 interface Props {
     entreprise: { id: number; denomination: string };
     assistants: Array<{ id: number; name: string }>;
     commercants: Array<{ id: number; name: string }>;
-    rdvsPris: Record<string, string[]>;
+    rdvsPris: Record<string, { date_rdv: string; details: string }[]>;
 }
 
 export default function Action({ entreprise, commercants, rdvsPris }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showRDVForm, setShowRDVForm] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Entreprises', href: '/entreprises' },
         { title: entreprise.denomination, href: `/entreprises/${entreprise.id}` },
-        { title: 'Nouveau Action', href: `/entreprises/${entreprise.id}/action` },
+        { title: 'Nouvelle Action', href: `/entreprises/${entreprise.id}/action` },
     ];
 
     const form = useForm<CombinedData>({
@@ -54,17 +55,25 @@ export default function Action({ entreprise, commercants, rdvsPris }: Props) {
         next_step: '',
         besoin_client: '',
         commentaire_action: '',
-        fonction:'',
-        details:'',
-        telephone:'',
+        contact: '',
+        fonction: '',
+        details: '',
+        telephone: '',
     });
 
-    const handleSubmit: FormEventHandler = (e) => {
+    // Save only Action
+    const handleSaveAction: FormEventHandler = (e) => {
+        e.preventDefault();
+        form.post(`/entreprises/${entreprise.id}/action-only`, {
+            onSuccess: () => setIsModalOpen(true),
+        });
+    };
+
+    // Save Action + RDV
+    const handleSaveActionWithRDV: FormEventHandler = (e) => {
         e.preventDefault();
         form.post(`/entreprises/${entreprise.id}/action`, {
-            onSuccess: () => {
-                setIsModalOpen(true);
-            },
+            onSuccess: () => setIsModalOpen(true),
         });
     };
 
@@ -74,22 +83,52 @@ export default function Action({ entreprise, commercants, rdvsPris }: Props) {
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
                 <div className="mx-auto max-w-5xl px-4">
                     <PageHeader 
-                        title="Créer RDV et Action" 
+                        title="Créer Action et/ou RDV" 
                         subtitle="Entreprise:" 
                         entrepriseName={entreprise.denomination} 
                     />
 
-                    <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* Action Form */}
+                    <form onSubmit={handleSaveAction} className="space-y-8 ">
                         <ActionSection form={form} />
-                        <RDVSection form={form} commercants={commercants} rdvsPris={rdvsPris || {}} />
-                        <SubmitButton isProcessing={form.processing} />
+
+                        <div className="flex gap-4 justify-end">
+                            <SubmitButton
+                                isProcessing={form.processing}
+                            />
+
+                            {!showRDVForm && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowRDVForm(true)}
+                                    className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-4 text-white font-semibold shadow-lg transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                >
+                                Ajouter un RDV
+                                </button>
+                            )}
+                        </div>
                     </form>
+
+                    {/* RDV Form (appears after button click) */}
+                    {showRDVForm && (
+                        <form onSubmit={handleSaveActionWithRDV} className="space-y-8 mt-8">
+                            <RDVSection 
+                                form={form} 
+                                commercants={commercants} 
+                                rdvsPris={rdvsPris || {}} 
+                            />
+                            <SubmitButton
+                                isProcessing={form.processing}
+                            />
+                        </form>
+                    )}
                 </div>
             </div>
+
             <SuccessModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                message="Rendez-vous Créer Avec Succés !"
+                message="Enregistré avec succès !"
                 buttonText="Continuer"
                 onContinue={() => router.visit(`/entreprises/${entreprise.id}`)}
             />

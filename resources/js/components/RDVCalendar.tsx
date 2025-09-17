@@ -5,8 +5,12 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 
+interface RdvIndisponible {
+  date_rdv: string;
+  details: string;
+}
 interface RDVCalendarProps {
-  rdvsIndisponibles: string[];
+  rdvsIndisponibles: RdvIndisponible[];
   commercantName: string;
   onDateSelect?: (dateInfo: any) => void;
   onEventClick?: (eventInfo: any) => void;
@@ -23,12 +27,12 @@ const RDVCalendar: React.FC<RDVCalendarProps> = ({
   // Convert rdvsIndisponibles to FullCalendar events format
   const events = useMemo(() => {
     return rdvsIndisponibles.map((rdv, index) => {
-      const startDate = new Date(rdv);
-      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Assume 1 hour duration
+    const startDate = new Date(rdv.date_rdv);
+      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); 
       
       return {
         id: `rdv-${index}`,
-        title: 'RDV Réservé',
+      title: 'RDV Réservé', 
         start: startDate.toISOString(),
         end: endDate.toISOString(),
         backgroundColor: '#ef4444',
@@ -37,7 +41,9 @@ const RDVCalendar: React.FC<RDVCalendarProps> = ({
         classNames: ['rdv-event'],
         extendedProps: {
           type: 'booked',
-          commercant: commercantName
+          commercant: commercantName,
+            details: rdv.details 
+
         }
       };
     });
@@ -56,7 +62,7 @@ const RDVCalendar: React.FC<RDVCalendarProps> = ({
 
     // Check if there's already an appointment at this time
     const isBooked = rdvsIndisponibles.some(rdv => {
-      const bookedDate = new Date(rdv);
+      const bookedDate = new Date(rdv.date_rdv);
       return Math.abs(bookedDate.getTime() - selectedDate.getTime()) < 60 * 60 * 1000; // Within 1 hour
     });
 
@@ -71,18 +77,21 @@ const RDVCalendar: React.FC<RDVCalendarProps> = ({
   };
 
   // Handle event click
-  const handleEventClick = (clickInfo: any) => {
-    if (onEventClick) {
-      onEventClick(clickInfo);
-    } else {
-      // Default behavior - show event details
-      const eventDate = new Date(clickInfo.event.start);
-      alert(`RDV réservé le ${eventDate.toLocaleString('fr-FR', {
-        dateStyle: 'full',
-        timeStyle: 'short'
-      })}`);
-    }
-  };
+const handleEventClick = (clickInfo: any) => {
+  if (onEventClick) {
+    onEventClick(clickInfo);
+  } else {
+    const eventDate = new Date(clickInfo.event.start);
+    const details = clickInfo.event.extendedProps.details; 
+
+    alert(`RDV réservé le ${eventDate.toLocaleString('fr-FR', {
+      dateStyle: 'full',
+      timeStyle: 'short'
+    })}
+Détails : ${details}`);
+  }
+};
+
 
   return (
     <div className="rdv-calendar-container">

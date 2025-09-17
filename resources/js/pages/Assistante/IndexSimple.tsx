@@ -366,7 +366,7 @@ export default function IndexSimple({ entreprise }: Props) {
                                         <ExternalLink size={14} />
                                     </Link>
 
-                                    {entreprise.hasRdv && entreprise.hasAction && (
+                                    {entreprise.hasAction && (
                                         <Link
                                             href={`/entreprises/${entreprise.id}/liste-actions`}
                                             className="group flex w-full transform items-center justify-center space-x-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-600 dark:from-yellow-600 dark:to-orange-700 px-4 py-3 text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:from-yellow-600 hover:to-orange-700 dark:hover:from-yellow-700 dark:hover:to-orange-800 hover:shadow-xl"

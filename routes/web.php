@@ -4,6 +4,7 @@ use App\Http\Controllers\adminController;
 use App\Http\Controllers\assistantController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\commercantController;
+use App\Http\Controllers\consultantController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -25,15 +26,30 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/entreprise/{entreprise}/show', [adminController::class, 'show'])->name('index');
 ;
 });
+//consulant routes
+Route::middleware(['auth', 'verified', 'role:consultant'])->group(function () {
+    Route::get('/listeEntreprises', [consultantController::class, 'index'])->name('Listesentreprises.index');
+    Route::get('/details/{entreprise}', [consultantController::class, 'details'])->name('Listesentreprises.details');
+Route::get('/export/entreprise/{entreprise}/{type}', [consultantController::class, 'exportEntrepriseData'])
+    ->name('export.entreprise.data');
+    Route::get('/export/listeEntreprise', [consultantController::class, 'exportListeEntreprise'])
+    ->name('export.listeentreprise.data');
+    
+
+
+});
 //assistant routes
 Route::middleware(['auth', 'verified', 'role:assistant'])->group(function () {
     Route::get('/dashboardA', [assistantController::class, 'assistantDashboard'])->name('assistant.dashboard');
     Route::get('/entreprises', [assistantController::class, 'index'])->name('entreprises.index');
+    Route::get('/recontact', [assistantController::class, 'entreprises_recontact'])->name('entreprises.recontact');
     Route::get('/entreprises/{entreprise}', [assistantController::class, 'indexSimple'])->name('entreprises.indexSimple');
     Route::get('/entreprises/{entreprise}/action', [assistantController::class, 'create'])
         ->name('entreprises.actions.create');
     Route::post('/entreprises/{entreprise}/action', [assistantController::class, 'store'])
         ->name('entreprises.actions.store');
+            Route::post('/entreprises/{entreprise}/action-only', [assistantController::class, 'store_actiononly'])
+        ->name('entreprises.actionsonly.store');
     Route::get('/entreprises/{entreprise}/liste-actions', [assistantController::class, 'indexActions'])->name('entreprises.indexActions');
     Route::get('/entreprises/{entreprise}/actions/{action}/edit', [assistantController::class, 'edit'])
         ->name('actions.edit');
@@ -41,6 +57,7 @@ Route::middleware(['auth', 'verified', 'role:assistant'])->group(function () {
         ->name('actions.update');
     Route::delete('/entreprises/{entreprise}/actions/{action}/delete', [assistantController::class, 'destroy'])
         ->name('actions.destroy');
+    Route::get('/rdvs', [assistantController::class, 'getrdvs'])->name('rdvs.index');
 
 
 });

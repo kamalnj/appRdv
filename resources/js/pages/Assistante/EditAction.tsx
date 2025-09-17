@@ -18,6 +18,7 @@ interface Props {
         next_step: string;
         besoin_client: string;
         commentaire: string;
+        contact: string;
     };
     rdv: {
         date_rdv: string;
@@ -42,6 +43,7 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
         next_step: action.next_step || '',
         besoin_client: action.besoin_client || '',
         commentaire_action: action.commentaire || '',
+        contact: action.contact || '',
         date_rdv: rdv.date_rdv || '',
         representant: rdv.representant || '',
         email: rdv.email || '',
@@ -172,6 +174,14 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
                                         multiline={true}
                                         rows={3}
                                         placeholder="Ajoutez vos commentaires additionnels..."
+                                    />
+                                            <InputField
+                                        label="Contact"
+                                        value={data.contact}
+                                        onChange={(value) => setData('contact', value)}
+                                        error={errors.contact}
+                                        multiline={true}
+                                        rows={3}
                                     />
                                 </div>
                             </div>

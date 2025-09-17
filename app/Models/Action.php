@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 class Action extends Model
 {
    protected $fillable = [
-        'entreprise_id', 'assistante_id', 'feedback', 'next_step', 'besoin_client','commentaire'
+        'entreprise_id', 'assistante_id', 'feedback', 'next_step', 'besoin_client','commentaire','contact'
     ];
 
         public function entreprise()

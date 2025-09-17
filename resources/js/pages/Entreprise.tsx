@@ -1,8 +1,10 @@
+import SearchAndFilters, { type FilterOption, type ActiveFilter } from '@/components/SearchAndFilters';
+import ImportSection from '@/components/ImportSection';
 import SuccessModal from '@/components/ui/SuccessModal';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { AlertCircle, Briefcase, Delete, Eye, FileText, MoreVertical, RotateCcw, Search, Upload, X } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { AlertCircle, Briefcase, Delete, Eye, FileText, MoreVertical, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -127,11 +129,10 @@ const DropdownMenu = ({ entrepriseId, isOpen, onClose, position }: DropdownMenuP
     );
 };
 
-export default function Index({ entreprises }: Props) {
+export default function Entreprise({ entreprises }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [search, setSearch] = useState('');
     const [tribunalFilter, setTribunalFilter] = useState('');
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
 
@@ -147,50 +148,6 @@ export default function Index({ entreprises }: Props) {
 
         return matchSearch && matchTribunal;
     });
-
-    const { post, reset, setData, processing, errors } = useForm({
-        file: null as File | null,
-    });
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        setSelectedFile(file || null);
-        setData('file', file || null);
-    };
-
-    const handleImport = () => {
-        if (!selectedFile) {
-            alert('Veuillez sélectionner un fichier.');
-            return;
-        }
-
-        post(`/users-import`, {
-            forceFormData: true,
-            onSuccess: () => {
-                reset();
-                setSelectedFile(null);
-                setIsModalOpen(true);
-            },
-            onError: (errors) => {
-                let msg = "Une erreur s'est produite lors de l'importation. Veuillez réessayer.";
-
-                if (errors) {
-                    if (Array.isArray(errors.file) && errors.file.length > 0) {
-                        msg = errors.file[0];
-                    } else {
-                        const firstKey = Object.keys(errors)[0];
-                        const firstVal = errors[firstKey];
-                        if (Array.isArray(firstVal) && firstVal.length > 0) {
-                            msg = firstVal[0];
-                        } else if (typeof firstVal === 'string') {
-                            msg = firstVal;
-                        }
-                    }
-                }
-                alert(msg);
-            },
-        });
-    };
 
     const clearFilters = () => {
         setSearch('');
@@ -222,6 +179,40 @@ export default function Index({ entreprises }: Props) {
         setOpenDropdownId(null);
     };
 
+    const filterOptions: FilterOption[] = tribunals.map(tribunal => ({
+        value: tribunal,
+        label: tribunal
+    }));
+
+    const filters = [
+        {
+            key: 'tribunal',
+            label: 'Tribunaux',
+            value: tribunalFilter,
+            options: filterOptions,
+            onChange: setTribunalFilter,
+            placeholder: 'Tous les tribunaux'
+        }
+    ];
+
+    const activeFilters: ActiveFilter[] = [];
+    if (tribunalFilter) {
+        activeFilters.push({
+            key: 'tribunal',
+            label: 'Tribunal',
+            value: tribunalFilter,
+            onRemove: () => setTribunalFilter('')
+        });
+    }
+
+    const handleImportSuccess = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleImportError = (error: string) => {
+        alert(error);
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Entreprises" />
@@ -229,87 +220,24 @@ export default function Index({ entreprises }: Props) {
             <div className="min-h-screen bg-gray-50 dark:border-neutral-700/60 dark:bg-neutral-900/70">
                 <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                     <div className="space-y-6">
-                        {/* Section Import */}
-                        <div className="rounded-xl border bg-white p-6 shadow-sm dark:border-neutral-700/60 dark:bg-neutral-900/70 dark:text-white">
-                            <div className="mb-4 flex items-center justify-between">
-                                <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-                                    <Upload className="h-5 w-5 text-indigo-500 dark:text-white" />
-                                    Importer des données
-                                </h2>
-                                <span className="text-sm text-gray-500 dark:text-white">Formats acceptés: CSV, XLSX, XLS</span>
-                            </div>
-
-                            <div className="rounded-lg border-2 border-dashed border-gray-300 p-6 transition-colors hover:border-indigo-300">
-                                <div className="flex flex-col items-center gap-4 sm:flex-row">
-                                    <div className="flex-1">
-                                        <input
-                                            type="file"
-                                            accept=".csv,.xlsx,.xls"
-                                            onChange={handleFileChange}
-                                            className="block w-full text-sm text-gray-500 transition-colors file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-600 hover:file:bg-indigo-100"
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={handleImport}
-                                        disabled={!selectedFile || processing}
-                                        className="inline-flex items-center rounded-lg bg-green-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        {processing ? 'Importation...' : 'Importer'}
-                                    </button>
-                                </div>
-
-                                {selectedFile && (
-                                    <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
-                                        <FileText className="h-4 w-4" />
-                                        <span>Fichier sélectionné: {selectedFile.name}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        <ImportSection
+                            importUrl="/users-import"
+                            title="Importer des données"
+                            subtitle="Formats acceptés: CSV, XLSX, XLS"
+                            acceptedTypes=".csv,.xlsx,.xls"
+                            onSuccess={handleImportSuccess}
+                            onError={handleImportError}
+                        />
 
                         {/* Section Recherche et Filtres */}
-                        <div className="rounded-xl border bg-white p-6 shadow-sm dark:border-neutral-700/60 dark:bg-neutral-900/70">
-                            <div className="space-y-4">
-                                {/* Barre de recherche et boutons */}
-                                <div className="flex flex-col gap-4 lg:flex-row">
-                                    <div className="relative flex-1">
-                                        <Search className="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
-                                        <input
-                                            type="text"
-                                            placeholder="Rechercher par nom, tribunal ou RC..."
-                                            className="w-full rounded-lg border border-gray-300 py-3 pr-4 pl-11 text-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
-                                            value={search}
-                                            onChange={(e) => setSearch(e.target.value)}
-                                        />
-                                    </div>
-                                    <select
-                                        value={tribunalFilter}
-                                        onChange={(e) => setTribunalFilter(e.target.value)}
-                                        className="min-w-48 rounded-lg border border-gray-300 px-4 py-3 text-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
-                                    >
-                                        <option value="">Tous les tribunaux</option>
-                                        {tribunals.map((tribunal) => (
-                                            <option key={tribunal} value={tribunal}>
-                                                {tribunal}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {/* Filtres standards */}
-                                <div className="flex flex-col gap-4 sm:flex-row">
-                                    {(search || tribunalFilter) && (
-                                        <button
-                                            onClick={clearFilters}
-                                            className="inline-flex items-center px-4 py-2 text-sm text-gray-600 transition-colors hover:text-gray-800"
-                                        >
-                                            <X className="mr-1 h-4 w-4" />
-                                            Effacer tous les filtres
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                        <SearchAndFilters
+                            searchValue={search}
+                            onSearchChange={setSearch}
+                            searchPlaceholder="Rechercher par nom, tribunal ou RC..."
+                            filters={filters}
+                            activeFilters={activeFilters}
+                            onClearAll={clearFilters}
+                        />
 
                         {/* Section Résultats */}
                         <div className="rounded-xl border bg-white shadow-sm dark:border-neutral-700/60 dark:bg-neutral-900/70 dark:text-neutral-50">
