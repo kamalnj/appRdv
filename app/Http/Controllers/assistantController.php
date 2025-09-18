@@ -255,9 +255,10 @@ public function entreprises_recontact(Request $request)
     {   
             $user = Auth::user();
 
-        if ($user->role === 'assistant' && $entreprise->assistante_id !== $user->id) {
-        abort(403, 'Unauthorized access.');
-         }
+     
+if ($user->role === 'assistant' && (int) $entreprise->assistante_id !== (int) $user->id) {
+    abort(403, 'Unauthorized access.');
+}
         $hasRdv = $entreprise->rdvs()->exists();
         $hasAction = $entreprise->actions()->exists();
 
@@ -274,10 +275,9 @@ public function entreprises_recontact(Request $request)
     {
             $user = Auth::user();
 
-    // 🔒 Security check
-    if ($user->role === 'assistant' && $entreprise->assistante_id !== $user->id) {
-        abort(403, 'Unauthorized access.');
-    }
+if ($user->role === 'assistant' && (int) $entreprise->assistante_id !== (int) $user->id) {
+    abort(403, 'Unauthorized access.');
+}
         return Inertia::render('Assistante/ListeAction', [
             'entreprise' => $entreprise->only(['id', 'denomination']),
             'actions' => $entreprise->actions()->with('rdv.commercant')->get(),
@@ -291,9 +291,9 @@ public function entreprises_recontact(Request $request)
             $user = Auth::user();
 
         $entreprise = Entreprise::findOrFail($entrepriseId);
-          if ($user->role === 'assistant' && $entreprise->assistante_id !== $user->id) {
-        abort(403, 'Unauthorized access.');
-    }
+    if ($user->role === 'assistant' && (int) $entreprise->assistante_id !== (int) $user->id) {
+    abort(403, 'Unauthorized access.');
+}
 
         $rdv = $action->rdv;
         $commercants = User::where('role', 'commerçant')->get(['id', 'name']);
@@ -312,9 +312,9 @@ public function entreprises_recontact(Request $request)
             $user = Auth::user();
 
         $entreprise = Entreprise::findOrFail($entrepriseId);
-            if ($user->role === 'assistant' && $entreprise->assistante_id !== $user->id) {
-        abort(403, 'Unauthorized access.');
-    }
+ if ($user->role === 'assistant' && (int) $entreprise->assistante_id !== (int) $user->id) {
+    abort(403, 'Unauthorized access.');
+}
 
 
         $rdvsPris = Rdv::whereHas('commercant', function ($query) {

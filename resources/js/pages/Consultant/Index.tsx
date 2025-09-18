@@ -109,7 +109,7 @@ export default function Index({ entreprises }: Props) {
                                 <p className="mt-2 text-gray-600 dark:text-gray-300">Gérez et consultez toutes vos entreprises enregistrées</p>
                             </div>
                             <div className="flex items-center gap-3">
-                                <a href=' /export/listeEntreprise' className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700">
+                                <a href='https://smartserv.ma/appS2/export/listeEntreprise' className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700">
                                     
                                     <Download className="h-4 w-4" />
                                     Exporter

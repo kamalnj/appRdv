@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\action;
+use App\Models\Action;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -18,7 +18,7 @@ class ActionsExport implements FromCollection, WithHeadings, WithMapping
 
     public function collection()
     {
-        return action::where('entreprise_id', $this->entrepriseId)
+        return Action::where('entreprise_id', $this->entrepriseId)
             ->select(
                 'id',
                 'entreprise_id',

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Briefcase, Calendar, ClipboardList, Download, FileSpreadsheet, MapPin, Mail, Phone, Filter, X } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
@@ -165,7 +165,7 @@ export default function Details({ rdvs = [], actions = [], entreprise }: Props) 
                                         >
                                             <div className="py-1">
                                                 <a
-                                                    href={`/export/entreprise/${entreprise.id}/${activeTab}`}
+                                                    href={`https://smartserv.ma/appS2/export/entreprise/${entreprise.id}/${activeTab}`}
                                                     className="flex w-full items-center px-4 py-2 text-sm text-gray-700 transition-colors duration-150 hover:bg-gray-50 dark:text-white dark:hover:bg-neutral-800/70"
                                                 >
                                                     <FileSpreadsheet className="mr-2 h-4 w-4" />
