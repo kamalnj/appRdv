@@ -3,7 +3,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { BriefcaseBusinessIcon, Clock, LayoutGrid, RefreshCcw } from 'lucide-react';
+import { BriefcaseBusinessIcon, Clock, LayoutGrid, RefreshCcw, MessageCircle } from 'lucide-react';
 import AppLogo from './app-logo';
 
 export function AppSidebar() {
@@ -67,6 +67,11 @@ export function AppSidebar() {
             title: 'Entreprises',
             href: '/listeEntreprises',
             icon: LayoutGrid,
+        },
+                {
+            title: 'Feedbacks',
+            href: '/feedbacks',
+            icon: MessageCircle,
         },
    
     ];
