@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { AlertCircle, Briefcase, Eye, FileText, Search, Settings, X } from 'lucide-react';
+import { AlertCircle, Briefcase, Eye, FileText, PlusCircle, Search, Settings, X } from 'lucide-react';
 import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -26,6 +26,7 @@ interface Entreprise {
     denomination: string;
     tribunal: string;
     rc: string;
+    lot: string;
     rdvs_count: number;
     attcom?: AttCom;
 }
@@ -48,12 +49,6 @@ interface PaginatedResponse<T> {
 }
 
 interface Props {
-    auth: {
-        user: {
-            name: string;
-            email: string;
-        };
-    };
     entreprises: PaginatedResponse<Entreprise>;
     filters?: { [key: string]: boolean };
 }
@@ -68,13 +63,16 @@ const docFields = [
     { key: 'test_', label: 'Test_' },
 ];
 
-export default function Index({ auth, entreprises, filters = {} }: Props) {
+export default function Index({ entreprises, filters = {} }: Props) {
     const [search, setSearch] = useState('');
     const [tribunalFilter, setTribunalFilter] = useState('');
+    const [lotFilter, setLotFilter] = useState('');
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
     const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: boolean }>(filters || {});
 
     const tribunals = Array.from(new Set(entreprises.data.map((e) => e.tribunal))).sort();
+    const lots = Array.from(new Set(entreprises.data.map((e) => e.lot))).sort();
+
 
     // Compter les filtres actifs
     const activeFiltersCount = Object.values(selectedFilters).filter(Boolean).length;
@@ -84,15 +82,19 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
             entreprise.denomination.toLowerCase().includes(search.toLowerCase()) ||
             entreprise.tribunal.toLowerCase().includes(search.toLowerCase()) ||
             entreprise.rc.toLowerCase().includes(search.toLowerCase());
+            entreprise.lot.toLowerCase().includes(search.toLowerCase());
+
 
         const matchTribunal = tribunalFilter ? entreprise.tribunal === tribunalFilter : true;
+        const matchLot = lotFilter ? entreprise.lot === lotFilter : true;
 
-        return matchSearch && matchTribunal;
+        return matchSearch && matchTribunal && matchLot;
     });
 
     const clearFilters = () => {
         setSearch('');
         setTribunalFilter('');
+        setLotFilter('');
         setSelectedFilters({});
         router.visit(route('entreprises.index'), {
             method: 'get',
@@ -163,6 +165,13 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                                 </span>
                                             )}
                                         </button>
+                                            <Link
+                                        href={route('entreprises.create')}
+                                            className="inline-flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-colors bg-green-600 text-white hover:bg-green-700"
+                                        >
+                                            <PlusCircle className="mr-2 h-4 w-4" />
+                                      Nouvelle entreprise
+                                        </Link>
                                     </div>
                                 </div>
 
@@ -180,8 +189,20 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                             </option>
                                         ))}
                                     </select>
+                                       <select
+                                        value={lotFilter}
+                                        onChange={(e) => setLotFilter(e.target.value)}
+                                        className="min-w-48 rounded-lg border border-gray-300 px-4 py-3 text-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
+                                    >
+                                        <option value="">Tous les lots</option>
+                                        {lots.map((lot) => (
+                                            <option key={lot} value={lot}>
+                                                {lot}
+                                            </option>
+                                        ))}
+                                    </select>
 
-                                    {(search || tribunalFilter || activeFiltersCount > 0) && (
+                                    {(search || tribunalFilter||lotFilter || activeFiltersCount > 0) && (
                                         <button
                                             onClick={clearFilters}
                                             className="inline-flex items-center px-4 py-2 text-sm text-gray-600 transition-colors hover:text-gray-800"
@@ -191,6 +212,7 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                         </button>
                                     )}
                                 </div>
+                               
 
                                 {/* Filtres avancés */}
                                 {showAdvancedFilters && (
@@ -313,6 +335,8 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                                     Tribunal
                                                 </th>
                                                 <th className="px-6 py-4 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">RC</th>
+                                                                                                <th className="px-6 py-4 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">LOT</th>
+
                                                 <th className="px-6 py-4 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
                                                     RDV
                                                 </th>
@@ -358,6 +382,13 @@ export default function Index({ auth, entreprises, filters = {} }: Props) {
                                                             <FileText className="mr-2 h-4 w-4 text-gray-400" />
                                                             <span className="font-mono text-sm text-gray-900 dark:text-neutral-50">
                                                                 {entreprise.rc}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <span className="font-mono text-sm text-gray-900 dark:text-neutral-50">
+                                                                {entreprise.lot}
                                                             </span>
                                                         </div>
                                                     </td>

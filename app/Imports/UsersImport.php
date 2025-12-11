@@ -133,6 +133,8 @@ class UsersImport implements ToModel, WithStartRow
             'tel' => $tels,                // array
             'diregeants' => $dirigeants,   // array
             'assistante_id'   =>  isset($row[11]) ? (string)$row[11] : null,
+            'lot'   =>  isset($row[12]) ? (string)$row[12] : null,
+
 
         ]);
     }

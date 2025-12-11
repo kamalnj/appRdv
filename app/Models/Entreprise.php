@@ -36,6 +36,7 @@ class Entreprise extends Model
         'tel',
         'diregeants',
         'assistante_id',
+        'lot',
 
     ];
 

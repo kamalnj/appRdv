@@ -43,6 +43,8 @@ Route::get('/export/entreprise/{entreprise}/{type}', [consultantController::clas
 Route::middleware(['auth', 'verified', 'role:assistant'])->group(function () {
     Route::get('/dashboardA', [assistantController::class, 'assistantDashboard'])->name('assistant.dashboard');
     Route::get('/entreprises', [assistantController::class, 'index'])->name('entreprises.index');
+    Route::get('/creer-entreprise', [assistantController::class, 'creerEntreprise'])->name('entreprises.create');
+    Route::post('/save-entreprises', [assistantController::class, 'storeEntreprise'])->name('entreprises.store');
     Route::get('/recontact', [assistantController::class, 'entreprises_recontact'])->name('entreprises.recontact');
     Route::get('/entreprises/{entreprise}', [assistantController::class, 'indexSimple'])->name('entreprises.indexSimple');
     Route::get('/entreprises/{entreprise}/action', [assistantController::class, 'create'])

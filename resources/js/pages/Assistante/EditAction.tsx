@@ -54,21 +54,34 @@ export default function EditAction({ entreprise, action, rdv, commercants }: Pro
         commercant_id: rdv.commercant_id || '',
     });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSaving(true);
-        setSaveStatus('idle');
+const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setSaveStatus('idle');
 
-        try {
-            put(`/entreprises/${entreprise.id}/actions/${action.id}`);
-            setSaveStatus('success');
-            setTimeout(() => setSaveStatus('idle'), 3000);
-        } catch (error) {
-            setSaveStatus('error');
-        } finally {
-            setIsSaving(false);
-        }
-    };
+    try {
+        console.log("Submitting...", { entrepriseId: entreprise.id, actionId: action.id });
+
+        await put(`/entreprises/${entreprise.id}/actions/${action.id}`, {
+            onSuccess: () => {
+                console.log("Save successful ✅");
+                setSaveStatus('success');
+                setTimeout(() => setSaveStatus('idle'), 3000);
+            },
+            onError: (errors) => {
+                console.error("Save failed ❌:", errors);
+                setSaveStatus('error');
+            }
+        });
+
+    } catch (error) {
+        console.error("Unexpected error in try/catch:", error);
+        setSaveStatus('error');
+    } finally {
+        console.log("Request finished");
+        setIsSaving(false);
+    }
+};
 
     const breadcrumbs: BreadcrumbItem[] = [
         {

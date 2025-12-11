@@ -80,12 +80,7 @@ const rdvsIndisponibles = useMemo(() => {
 
   };
 
-  // Generate minimum date-time (current time + 1 hour)
-  const getMinDateTime = () => {
-    const now = new Date();
-    now.setHours(now.getHours() + 1);
-    return now.toISOString().slice(0, 16);
-  };
+
 
   return (
     <FormSection
@@ -149,7 +144,6 @@ const rdvsIndisponibles = useMemo(() => {
                 onChange={handleDateChange}
                 error={form.errors.date_rdv}
                 icon={<ClockIcon className="h-4 w-4 text-gray-400" />}
-                min={getMinDateTime()}
               />
             </div>
               <RDVCalendar
