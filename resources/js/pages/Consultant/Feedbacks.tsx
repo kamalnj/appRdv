@@ -1,3 +1,4 @@
+import ExportCSV from '@/components/ExportCSV';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
@@ -5,10 +6,19 @@ import {  Calendar, Download, Eye, Filter, Sparkles, User, X } from 'lucide-reac
 import { useEffect, useRef, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Feedbacks', href: '/feedbacks' }];
+interface Entreprise {
+    id: number;
+    denomination: string;
+    rc: string;
+    tribunal: string;
+}
+
 
 interface FeedbackItem {
     feedback: string;
     count: number;
+    entreprises: Entreprise[];
+
 }
 
 interface Assistante {
@@ -98,38 +108,7 @@ const Feedbacks = ({ feedbackData, assistantes, filters }: Props) => {
             percentage: totalCount > 0 ? (item.count / totalCount) * 100 : 0,
         }))
 
-    const exportData = () => {
-        if (!filteredData?.length) return;
 
-        const BOM = '\uFEFF';
-        const headers = ['Type de Feedback', 'Nombre', 'Pourcentage'];
-
-        const escapeCSV = (value: string | number) => {
-            if (value === null || value === undefined) return '';
-            const str = String(value);
-            if (/[",;\n]/.test(str)) {
-                return `"${str.replace(/"/g, '""')}"`;
-            }
-            return str;
-        };
-
-        const rows = filteredData.map((item) => [escapeCSV(item.feedback), escapeCSV(item.count), escapeCSV(`${item.percentage.toFixed(2)}%`)]);
-
-        const delimiter = ';';
-        const csvContent = [headers, ...rows].map((row) => row.join(delimiter)).join('\n');
-
-        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `feedbacks-export-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        URL.revokeObjectURL(url);
-    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -173,14 +152,8 @@ const Feedbacks = ({ feedbackData, assistantes, filters }: Props) => {
                                         )}
                                     </button>
 
-                                    <button
-                                        onClick={exportData}
-                                        disabled={filteredData.length === 0}
-                                        className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-emerald-700 hover:to-teal-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        <Download className="h-4 w-4" />
-                                        Exporter CSV
-                                    </button>
+                           <ExportCSV data={filteredData} />
+
                                 </div>
                             </div>
                         </div>

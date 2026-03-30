@@ -6,17 +6,17 @@ import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
-// const basePath = '/appS2'; // Sous-dossier de l'application
+const basePath = '/appS2'; // Sous-dossier de l'application
 
-// // Intercepter toutes les requêtes Inertia pour forcer le bon préfixe
-// router.on('start', ({ detail: { visit } }) => {
-//     const path = visit.url.pathname;
+// Intercepter toutes les requêtes Inertia pour forcer le bon préfixe
+router.on('start', ({ detail: { visit } }) => {
+    const path = visit.url.pathname;
 
-//     // Ajouter le préfixe uniquement si nécessaire
-//     if (path.startsWith('/') && !path.startsWith(basePath)) {
-//         visit.url.pathname = basePath + path;
-//     }
-// });
+    // Ajouter le préfixe uniquement si nécessaire
+    if (path.startsWith('/') && !path.startsWith(basePath)) {
+        visit.url.pathname = basePath + path;
+    }
+});
 
 // // Gestion des erreurs pour forcer le rechargement si nécessaire
 // router.on('error', ({ detail: { errors } }) => {

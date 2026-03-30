@@ -113,6 +113,11 @@ export default function Index({ entreprises }: Props) {
                                     <Download className="h-4 w-4" />
                                     Exporter
                                 </a>
+                                   <a href='https://smartserv.ma/appS2/export/entreprises-sans-actions' className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700">
+                                    
+                                    <Download className="h-4 w-4" />
+                                    Entreprises Sans Actions
+                                </a>
                             </div>
                         </div>
                     </div>

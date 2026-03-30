@@ -34,8 +34,13 @@ Route::get('/export/entreprise/{entreprise}/{type}', [consultantController::clas
     ->name('export.entreprise.data');
     Route::get('/export/listeEntreprise', [consultantController::class, 'exportListeEntreprise'])
     ->name('export.listeentreprise.data');
+    Route::get('/export/entreprises-sans-actions', [consultantController::class, 'exportEntreprisesSansActions'])
+    ->name('export.entreprises.sans.actions');
+
    Route::get('/feedbacks',[consultantController::class,'feedbackPage'])
      ->name('feedbacks');
+         Route::get('/consultantCalendrier', [consultantController::class, 'calendar'])->name('consultant.calendar');
+
 
 
 });
